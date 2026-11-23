@@ -72,11 +72,12 @@ const App: React.FC = () => {
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
         <main className="main">
           <Header onSignOut={handleSignOut} />
-          {/* Placeholder for tab content – will be filled later */}
-          <div className="placeholder-content">
-            <h2>Welcome!</h2>
-            <p>You are signed in as {user.email}.</p>
-          </div>
+          {activeTab === 'home' && <HomeDashboard />}
+          {activeTab === 'leads' && <Leads />}
+          {activeTab === 'pipe' && <PipelineBoard />}
+          {activeTab === 'find' && <FindLeads />}
+          {activeTab === 'num' && <Reports />}
+          {activeTab === 'tpl' && <Templates />}
         </main>
       </div>
     </UserContext.Provider>
