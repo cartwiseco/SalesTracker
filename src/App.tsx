@@ -68,7 +68,7 @@ const App: React.FC = () => {
     return (
       <div className="center-screen">
         <h1>Configuration required</h1>
-        <p>Set these Netlify environment variables and redeploy:</p>
+        <p>Set these Vercel environment variables and redeploy:</p>
         <pre>{missingFirebaseConfig.join('\n')}</pre>
       </div>
     );
