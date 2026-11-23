@@ -1,6 +1,6 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { auth, db } from './firebase/init';
+import { auth, db, missingFirebaseConfig } from './firebase/init';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import NotAllowed from './components/NotAllowed';
@@ -29,6 +29,8 @@ const App: React.FC = () => {
   const bypassAuth = import.meta.env.DEV && import.meta.env.VITE_BYPASS_AUTH === 'true';
 
   useEffect(() => {
+    if (missingFirebaseConfig.length > 0) return undefined;
+    if (!auth) return undefined;
     if (bypassAuth) {
       setUser({ uid: 'test-user', email: allowedEmail || 'test@local.dev' });
       setAllowed(true);
@@ -48,6 +50,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleSignIn = async () => {
+    if (!auth) return;
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
@@ -57,8 +60,28 @@ const App: React.FC = () => {
     }
   };
   const handleSignOut = async () => {
+    if (!auth) return;
     await signOut(auth);
   };
+
+  if (missingFirebaseConfig.length > 0) {
+    return (
+      <div className="center-screen">
+        <h1>Configuration required</h1>
+        <p>Set these Netlify environment variables and redeploy:</p>
+        <pre>{missingFirebaseConfig.join('\n')}</pre>
+      </div>
+    );
+  }
+
+  if (!auth) {
+    return (
+      <div className="center-screen">
+        <h1>Firebase could not start</h1>
+        <p>Check the Firebase web config values and redeploy.</p>
+      </div>
+    );
+  }
 
   if (!user) {
     return (

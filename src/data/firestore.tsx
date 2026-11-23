@@ -19,7 +19,7 @@ export const LeadsProvider: React.FC<{ uid: string; children: React.ReactNode }>
   const [settings, setSettings] = useState<Settings | null>(null);
 
   useEffect(() => {
-    if (!uid) return undefined;
+    if (!uid || !db) return undefined;
 
     const unsubLeads = onSnapshot(collection(db, 'users', uid, 'leads'), (snapshot) => {
       const nextLeads: Record<string, Lead> = {};
@@ -40,16 +40,19 @@ export const LeadsProvider: React.FC<{ uid: string; children: React.ReactNode }>
   }, [uid]);
 
   const saveLead = useCallback(async (lead: Lead) => {
+    if (!db) throw new Error('Firebase is not configured');
     if (!uid) throw new Error('Test bypass cannot write Firestore data');
     await setDoc(doc(db, 'users', uid, 'leads', lead.id), lead, { merge: true });
   }, [uid]);
 
   const deleteLead = useCallback(async (leadId: string) => {
+    if (!db) throw new Error('Firebase is not configured');
     if (!uid) throw new Error('Test bypass cannot delete Firestore data');
     await deleteDoc(doc(db, 'users', uid, 'leads', leadId));
   }, [uid]);
 
   const saveSettings = useCallback(async (newSettings: Settings) => {
+    if (!db) throw new Error('Firebase is not configured');
     if (!uid) throw new Error('Test bypass cannot write Firestore data');
     await setDoc(doc(db, 'users', uid, 'settings', 'main'), newSettings, { merge: true });
   }, [uid]);
