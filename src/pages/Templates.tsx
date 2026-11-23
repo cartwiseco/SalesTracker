@@ -27,16 +27,18 @@ const Templates: React.FC = () => {
   };
 
   return (
-    <div id="view" className="card" style={{padding:'20px'}}>
+    <div id="view">
       <h1>Templates</h1>
       <p className="sub">Use {"{hi}"}, {"{brand}"} and {"{obs}"} (your "what I noticed" line). Changes save as you leave each box.</p>
-      {templates.map((t, i) => (
-        <div key={i} style={{marginBottom:'12px'}}>
-          <label>{['First message','Follow-up 1','Follow-up 2','Follow-up 3','Follow-up 4','Follow-up 5 (last)'][i]}</label>
-          <textarea rows={3} value={t} onChange={e=>handleChange(i, e.target.value)} />
-        </div>
-      ))}
-      <button className="btn" onClick={reset}>Reset to defaults</button>
+      <div className="card t-purple">
+        {templates.map((t, i) => (
+          <div key={i} style={{marginBottom:'12px'}}>
+            <label>{['First message','Follow-up 1','Follow-up 2','Follow-up 3','Follow-up 4','Follow-up 5 (last)'][i]}</label>
+            <textarea rows={3} value={t} onChange={e=>handleChange(i, e.target.value)} />
+          </div>
+        ))}
+        <button className="btn" onClick={reset}>Reset to defaults</button>
+      </div>
     </div>
   );
 };

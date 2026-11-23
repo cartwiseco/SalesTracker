@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cart Wise Co: Lead Tracker</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap">
+<style>
+:root{--bg:#f6f5fb;--card:#fff;--ink:#1f1d3d;--mut:#625f82;--line:#e4e2f0;--soft:#f1f0f8;--brand:#3d3aa8;--brandh:#2b2980;--gold:#f0a81c;--chip:#e6e4f3;--bad:#c4283f;--warn:#9a5b00;--good:#1f8a54;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 "Bricolage Grotesque","Segoe UI",system-ui,sans-serif;font-optical-sizing:auto}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.app{display:flex;min-height:100vh}
+aside{width:224px;flex:none;background:var(--card);border-right:1px solid var(--line);padding:20px 12px;position:sticky;top:0;height:100vh;align-self:flex-start}
+.logo{display:flex;align-items:center;gap:10px;font-weight:750;font-size:17px;letter-spacing:-.01em;color:var(--ink);padding:2px 8px 22px}
+.logo svg{width:34px;height:34px;flex:none}
+aside button{display:flex;align-items:center;gap:11px;width:100%;border:0;background:none;color:var(--mut);padding:10px 12px;border-radius:12px;cursor:pointer;text-align:left;font-weight:560;margin-bottom:2px;position:relative}
+aside button:hover{background:var(--soft);color:var(--ink)}
+aside button.on{background:#ecebfb;color:var(--brand);font-weight:700}
+aside button.on::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:4px;border-radius:0 4px 4px 0;background:var(--gold)}
+aside svg.i{width:18px;height:18px;flex:none}
+main{flex:1;min-width:0}
+.gh{display:flex;gap:10px;align-items:center;padding:16px 28px 0}
+.gh input{flex:1;max-width:460px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:10px 18px}
+.gh .sp{flex:1}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--brand);border-radius:10px;padding:8px 16px;cursor:pointer;font-weight:650}
+.btn:hover{background:#ecebfb;border-color:#cfcdf0}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}.btn.pri:hover{background:var(--brandh)}
+.btn.sm{padding:4px 11px;font-size:12.5px;border-radius:8px}.btn.neg{color:var(--bad)}
+#view{padding:22px 28px 48px;max-width:1280px}
+h1{font-size:27px;line-height:1.15;letter-spacing:-.022em;font-weight:760;margin:0 0 4px}
+h2{font-size:15.5px;font-weight:700;margin:0 0 12px}
+.sub{color:var(--mut);margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+.t-blue{background:#e2f0fa;border-color:#c5def2}.t-amber{background:#fdf1d1;border-color:#f3dea0}.t-green{background:#e1f3e8;border-color:#bfe3cd}.t-red{background:#fbe5ea;border-color:#f3c3cd}.t-purple{background:#ecebfb;border-color:#d3d1f3}.t-teal{background:#def3f1;border-color:#b9e3df}.t-grey{background:#efeef5;border-color:#dddbea}
+.plan{background:var(--brand);border-color:var(--brand);color:#fff;border-radius:22px;padding:24px 28px}
+.plan h2{font-size:21px;letter-spacing:-.015em;color:#fff}.plan .sub{color:#cfcdf3}
+.pt{height:9px;border-radius:9px;background:rgba(255,255,255,.22);margin:7px 0}.pf{height:100%;border-radius:9px;background:var(--gold)}.pf.done{background:#7ce0a8}
+.plan .btn.pri{background:var(--gold);border-color:var(--gold);color:var(--ink)}.plan .btn.pri:hover{background:#ffbd3d}
+.g{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:16px}
+.kpis{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:16px}
+.kpi small{color:var(--mut);display:block}.kpi b{font-size:30px;font-weight:760;letter-spacing:-.02em;display:block;margin-top:2px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:650;color:var(--c);background:var(--card);background:color-mix(in srgb,var(--c) 13%,#fff);white-space:nowrap}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;background:var(--chip)}
+.tag.bad{background:var(--bad);color:#fff}.tag.warn{background:var(--gold);color:var(--ink)}.tag.ok{background:var(--good);color:#fff}
+.legend{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.legend button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 13px;cursor:pointer;display:flex;gap:6px;align-items:center;font-size:12.5px;font-weight:550}
+.legend button.on{border-color:var(--brand);background:#ecebfb;color:var(--brand);font-weight:700}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%}
+th{font-size:12.5px;font-weight:650;color:var(--mut);text-align:left;padding:12px 14px;border-bottom:2px solid var(--line)}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.r{cursor:pointer}tr.r:hover td{background:#f6f5fd}td a{color:var(--brand);font-weight:700}
+.t{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(31,29,61,.08)}.t:last-child{border:0}
+.t .ic{width:32px;height:32px;border-radius:10px;background:var(--c);flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
+.t .x{flex:1;min-width:0}.t .x b{display:block}.t .x span{color:var(--mut);font-size:12.5px}.t .a{display:flex;gap:6px}
+.empty{padding:20px;text-align:center;color:var(--mut)}
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;align-items:start}
+.lane{min-width:0;background:color-mix(in srgb,var(--c) 7%,#fff);border:1px solid color-mix(in srgb,var(--c) 24%,#fff);border-radius:16px;padding:10px}
+.lane h3{margin:4px 6px 10px;font-size:13.5px;display:flex;justify-content:space-between}.lane h3 span{color:var(--mut);font-weight:500}
+.kc{background:#fff;border:1px solid var(--line);border-left:4px solid var(--c);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:grab}
+.kc:hover{box-shadow:0 4px 14px rgba(31,29,61,.14)}.kc small{color:var(--mut);display:block}
+.br{display:grid;grid-template-columns:120px 1fr 74px;gap:10px;align-items:center;margin:8px 0}
+.br i{display:block;height:12px;background:rgba(31,29,61,.08);border-radius:12px;overflow:hidden}.br s{display:block;height:100%;background:var(--c,var(--brand))}.br b{text-align:right}
+.kv{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(31,29,61,.08)}.kv:last-child{border:0}
+.cols{display:flex;align-items:flex-end;gap:10px;height:140px}.cols div{flex:1;text-align:center;font-size:12px;color:var(--mut)}.cols i{display:block;background:var(--brand);border-radius:6px 6px 0 0;margin-bottom:4px;min-height:3px}
+.set{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+label{display:block;font-size:12.5px;color:var(--mut);margin-bottom:4px;font-weight:550}
+input,select,textarea{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;width:100%}
+#modal{display:none;position:fixed;inset:0;z-index:40;background:rgba(31,29,61,.5);overflow:auto;padding:20px 14px;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.rec{max-width:900px;margin:0 auto;background:var(--card);border-radius:22px;overflow:hidden;animation:up .2s ease-out}
+@keyframes up{from{transform:translateY(18px);opacity:0}}@media (prefers-reduced-motion:reduce){.rec{animation:none}}
+.rh{display:flex;gap:14px;align-items:center;padding:20px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:#f6f5fd}
+.rh .big{width:46px;height:46px;border-radius:14px;background:var(--c);color:#fff;display:grid;place-items:center;font-weight:700;font-size:19px}
+.rh small{color:var(--mut);display:block}.rh h1{margin:0}.rh .sp{flex:1}
+.pathw{padding:16px 24px 4px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto}
+.path{display:flex;gap:3px;list-style:none;margin:0 0 12px;padding:0;flex-wrap:wrap}
+.path li{flex:1 1 84px;text-align:center;padding:8px 4px 8px 15px;font-size:12px;font-weight:650;background:var(--chip);color:var(--mut);cursor:pointer;clip-path:polygon(0 0,calc(100% - 11px) 0,100% 50%,calc(100% - 11px) 100%,0 100%,11px 50%)}
+.path li:first-child{clip-path:polygon(0 0,calc(100% - 11px) 0,100% 50%,calc(100% - 11px) 100%,0 100%);padding-left:10px}
+.path li.on{background:var(--c);color:#fff}.path li.cur{box-shadow:inset 0 -3px rgba(0,0,0,.25)}
+.path li.lost{flex:.7;background:var(--card);color:var(--bad);border:1px solid var(--bad);clip-path:none;border-radius:8px;margin-left:6px}.path li.lost.on{background:var(--bad);color:#fff}
+.rb{padding:6px 24px 24px}
+.sec{background:var(--soft);margin:18px -24px 14px;padding:8px 24px;font-size:13px;font-weight:700;color:var(--brand)}
+.fg{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}.fg .w{grid-column:1/-1}
+.warnbox{background:#fdf1d1;border-left:4px solid var(--gold);padding:10px 14px;border-radius:10px;margin:14px 0 0}
+.errbox{background:#fbe5ea;border-left:4px solid var(--bad);padding:10px 14px;border-radius:10px;margin-top:14px;color:var(--bad);font-weight:600}
+.rf{display:flex;justify-content:flex-end;gap:8px;padding:14px 24px;border-top:1px solid var(--line);background:#f6f5fd}
+textarea.draft{min-height:150px}
+@media (max-width:1180px){.tw th:nth-child(8),.tw td:nth-child(8){display:none}}@media (max-width:980px){.tw th:nth-child(1),.tw td:nth-child(1),.tw th:nth-child(4),.tw td:nth-child(4){display:none}}@media (max-width:720px){.tw th:nth-child(3),.tw td:nth-child(3),.tw th:nth-child(7),.tw td:nth-child(7){display:none}}
+@media (max-width:820px){.app{flex-direction:column}aside{width:auto;height:auto;position:static;display:flex;gap:4px;flex-wrap:wrap;overflow:visible;padding:8px;border-right:0;border-bottom:1px solid var(--line)}.logo{padding:4px 10px 4px 4px}aside button{width:auto;white-space:nowrap;margin:0}aside button.on::before{display:none}aside button.on{box-shadow:inset 0 -3px var(--gold)}#view,.gh{padding-left:14px;padding-right:14px}h1{font-size:23px}.plan{padding:20px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="logo"><svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="10" fill="#3d3aa8"/><path d="M7 9h3l2.4 10h9.2L24 12H11.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="23" r="1.9" fill="#f0a81c"/><circle cx="21" cy="23" r="1.9" fill="#f0a81c"/></svg>Cart Wise Co</div>
+  <div id="nav"></div>
+</aside>
+<main>
+  <div class="gh"><input id="gs" placeholder="Search leads by brand, contact, handle or link" oninput="gsearch(this.value)"><span class="sp"></span><button class="btn" onclick="openImport()">Import</button><button class="btn" onclick="exportCsv()">Export</button><button class="btn pri" onclick="edit()">New lead</button></div>
+  <div id="view"></div>
+  <p class="sub" id="where" style="padding:0 22px 24px"></p>
+</main>
+</div>
+<div id="modal"><div class="rec" id="rec"></div></div>
+
+<script>
+var STAGES=['New Lead','Message Sent','Replied','Call Booked','Quote Sent','Won','Lost'];
+var SC={'New Lead':'#6b7a90','Message Sent':'#0176d3','Replied':'#06a59a','Call Booked':'#7f5bd6','Quote Sent':'#fe9339','Won':'#2e844a','Lost':'#ba0517'};
+var OPT={
+ category:['Kids & Toys','Home & Lifestyle','Fashion & Accessories','Beauty & Wellness','Food & D2C','Other'],
+ source:['Meta Ad Library','Instagram','Google','Directory','Referral','LinkedIn','Other'],
+ leadType:['Running ads','Weak existing store','No store yet'],
+ platform:['Shopify','WooCommerce','Custom','Wix / Other','None (no store)','Unknown'],
+ route:['WhatsApp','Instagram DM','Email','LinkedIn','Phone call'],
+ budget:['Unknown','Under ₹40,000','₹40,000 to ₹70,000','₹70,000 to ₹1,50,000','Above ₹1,50,000'],
+ service:['New store build','Store redesign','Fixes and speed work','Ongoing store management','Other'],
+ dealType:['One-time project','Monthly retainer'],
+ lostReason:['No reply after follow-ups','Price too high','Chose someone else','Already has a good store','Bad timing','Not a fit','Other'],
+ yn:['No','Yes']};
+var GAPS=[1,3,7,14,21];
+var leads={},settings={goal:300000,win:30,perDay:15,days:5},tab='home',col=null,ready=false,sf='',q='',more={};
+
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function today(){return iso(new Date())}
+function addDays(s,n){var d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return iso(d)}
+function gap(a,b){return Math.round((new Date(a+'T00:00:00')-new Date(b+'T00:00:00'))/864e5)}
+function inr(n){return '₹'+Number(n||0).toLocaleString('en-IN')}
+function fmt(s){return s?new Date(s+'T00:00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'}):''}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function $(i){return document.getElementById(i)}
+function list(){return Object.values(leads).sort(function(a,b){return (a.n||0)-(b.n||0)})}
+function badge(s){return '<span class="badge" style="--c:'+SC[s]+'">'+s+'</span>'}
+
+/* rules, same as the spreadsheet */
+function due(l){if(l.stage!=='Message Sent'||!l.firstMsg)return '';var n=+l.fu||0;var G=gapList();return n>=G.length?'done':addDays(l.firstMsg,G[n])}
+function rel(d){var t=today();return d<t?'Overdue':d===t?'Due today':'Upcoming'}
+function fuStatus(l){var d=due(l);return !d?'':d==='done'?'Close or Lost':rel(d)}
+function naStatus(l){if(['Replied','Call Booked','Quote Sent'].indexOf(l.stage)<0)return '';return l.nextAction?rel(l.nextAction):'Set date'}
+function reach(l){if(l.stage==='Won')return 5;if(l.stage==='Quote Sent'||(l.stage==='Lost'&&l.value))return 4;if(l.stage==='Call Booked'||l.callDate)return 3;if(l.stage==='Replied'||l.replyDate)return 2;return l.firstMsg?1:0}
+function same(a,b){return a&&b&&String(a).trim().toLowerCase()===String(b).trim().toLowerCase()}
+function checks(l){var o=Object.values(leads).filter(function(x){return x.id!==l.id}),out=[],s=l.stage;
+  if(o.some(function(x){return same(x.brand,l.brand)}))out.push('Duplicate brand');
+  if(o.some(function(x){return same(x.link,l.link)}))out.push('Duplicate link');
+  if(o.some(function(x){return same(x.handle,l.handle)}))out.push('Duplicate contact');
+  if(s==='New Lead'&&l.firstMsg)out.push('Stage still New Lead');
+  if(s!=='New Lead'&&s!=='Lost'&&!l.firstMsg)out.push('Add first message date');
+  if(['Replied','Call Booked','Quote Sent','Won'].indexOf(s)>=0&&!l.replyDate)out.push('Add reply date');
+  if((s==='Quote Sent'||s==='Won')&&!l.value)out.push('Add deal value');
+  if(s==='Won'&&!l.wonDate)out.push('Add won date');
+  if(s==='Lost'&&!l.lostReason)out.push('Add lost reason');
+  return out}
+var TPLD=['{hi} I was looking at {brand} and noticed {obs}. I help online brands fix issues like this so more visitors check out. Could I send you a free 10-point audit of your store?',
+'{hi} just checking you saw my last message about {brand}. Happy to share what I found, no strings attached.',
+'{hi} I put together a free 10-point audit for {brand}, starting with {obs}. Want me to send it over?',
+'{hi} here is a live store in your space that we improved. I can show you what changed and what it did for their orders.',
+'{hi} one quick tip for {brand}: fast pages and a simple checkout lift orders more than most design changes. Glad to point out where yours can improve.',
+'{hi} I will stop pinging you here. If store improvements come up later, I am a message away. Wishing {brand} a great season.'];
+async function aiDraft(id){var l=leads[id],b=$('aib'),n=l.stage==='New Lead'?-1:(+l.fu||0),G=gapList(),kind=n<0?'first message':(n>=G.length-1?'final polite follow-up that closes the loop with no pressure':'follow-up number '+(n+1)),sm=null,em=l.route==='Email';
+  try{sm=window.claude&&await claude.use('sample')}catch(e){}
+  if(!sm){b.textContent='AI not available here';return}
+  b.disabled=true;b.textContent='Writing...';
+  var hist=(l.log||[]).slice(-5).map(function(e){return fmt(e.t)+': '+e.x}).join('\n'),
+  pr=['You write outreach messages for Cart Wise Co, a one-person service that builds and fixes online stores for brands in India.','Write one '+kind+' to '+(l.contact||'the owner')+' at '+l.brand+'.','Tone and language: '+$('tn').value+'.','Channel: '+(l.route||'chat')+(em?' (email body only, up to 90 words)':' (up to 60 words)')+'.','Lead details: category '+(l.category||'unknown')+'; platform '+(l.platform||'unknown')+'; store link '+(l.link||'none')+'.','What the sender noticed about the store: '+(l.observation||'nothing noted')+'.','Internal notes, do not quote: '+(l.notes||'none')+'.','Recent activity:\n'+(hist||'none'),'Rules: use only the facts above and never invent details about the store. No flattery, no fake urgency, no emojis unless the tone is casual. For a first message offer a free 10-point audit. End with one soft question. Reference message for the offer and style:\n'+draft(l),'Output only the message text with no subject line and no quotes.'].join('\n\n');
+  try{var r=await sm(pr,{modelTier:'quick',cache:false});if($('dt')){$('dt').value=r.text.trim();b.textContent='Write again'}}catch(e){b.textContent=e&&e.code==='not_granted'?'Permission needed':'Try again'}
+  b.disabled=false}
+async function gmailDraft(id){var l=leads[id],b=$('gmb'),to=(l.handle||'').trim(),mcp=null;
+  try{mcp=window.claude&&await claude.use('mcp')}catch(e){}
+  if(!mcp){b.textContent='Gmail is not available here';return}
+  b.disabled=true;b.textContent='Creating draft...';
+  try{var r=await mcp.callTool('Gmail','create_draft',{to:[to],subject:'Quick idea for '+l.brand,body:$('dt').value,includeSignature:true}),u=r.payload&&r.payload.viewUrl;
+    try{var c=Object.assign({},leads[id]);c.log=(c.log||[]).concat([{t:today(),x:'Gmail draft created'}]);saveLead(c)}catch(e2){}
+    b.disabled=false;if(u){window._gmu=u;b.textContent='Draft created. Open in Gmail';b.onclick=function(){window.open(window._gmu,'_blank')}}else b.textContent='Draft created in Gmail'}
+  catch(e){var k=e&&e.code;b.disabled=false;b.textContent=k==='server_not_connected'?'Connect Gmail in Settings, Connectors':k==='needs_reauth'?'Reconnect Gmail in Settings, Connectors':(k==='approval_required'||k==='not_in_manifest'||k==='not_granted'||k==='consent_required')?'Gmail needs your permission. Click to ask again':k==='tool_error'?'Gmail refused the draft':'Could not create the draft'}}
+function vFind(){var added=list().filter(function(l){return l.added===today()&&(l.log||[]).some(function(e){return e.x==='Found via lead finder'})}).length,
+  card=function(t,w,k,btn,steps){return '<div class="card '+({ads:'t-blue',google:'t-amber',insta:'t-green'}[k])+'"><h2>'+t+'</h2><div class="sub" style="margin:0 0 10px">'+w+'</div><button class="btn pri" onclick="openFind(\''+k+'\')">'+btn+'</button><ol style="margin:12px 0 0;padding-left:18px;color:var(--mut);font-size:13px;line-height:1.6">'+steps.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ol></div>'};
+  return '<h1>Find leads</h1><p class="sub">Type a product keyword, run one of the three searches, and save good brands straight into your leads. A few well-checked leads with one specific observation beat a long list.</p>'+
+  '<div class="card t-grey" style="margin-bottom:12px"><div style="display:flex;gap:10px;flex-wrap:wrap"><div><label>Product keyword</label><input id="fk" value="'+esc(window._fk||'')+'" placeholder="for example handloom sarees" style="width:240px"></div><div><label>Category for saved leads</label><select id="fc">'+OPT.category.map(function(o){return '<option'+(o===(window._fcat||'Fashion & Accessories')?' selected':'')+'>'+esc(o)+'</option>'}).join('')+'</select></div></div></div>'+
+  '<div class="g">'+
+  card('Running ads','Brands paying for traffic, so they have a budget.','ads','Open Meta Ad Library (India)',['Open an ad and click through to the store.','Check mobile speed, product pages and checkout.','Note one specific problem you could fix.'])+
+  card('Weak existing store','Real stores that rank on later Google pages.','google','Search Google, pages 2 to 4',['Open a few stores from the results.','Look for slow pages, dated design or a confusing checkout.','Save the ones with a clear, fixable problem.'])+
+  card('No store yet','Instagram sellers who take orders by DM.','insta','Find Instagram sellers',['Open the profile and check the link in bio.','No proper website, but steady posts and products? Good lead.','Note what they sell and how they take orders.'])+
+  '</div><div class="card t-purple" style="margin-top:12px"><h2>Save a lead</h2><div class="sub" style="margin:0 0 10px">Added today with the finder: '+added+'</div><div style="display:flex;gap:10px;flex-wrap:wrap"><div><label>Brand</label><input id="fb" style="width:200px"></div><div><label>Store or Instagram link</label><input id="fl" style="width:260px"></div><div><label>Type</label><select id="ft" onchange="fkRender()">'+OPT.leadType.map(function(o){return '<option>'+esc(o)+'</option>'}).join('')+'</select></div></div><div style="margin-top:10px"><label>Quick check (tick what you see)</label><div id="fcl">'+fkHtml('Running ads')+'</div></div><div style="margin-top:10px"><label>What you noticed</label><input id="fo" placeholder="Filled in from your ticks, or type your own"></div><div style="margin-top:12px"><button class="btn pri" onclick="addFound()">Save lead</button> <span class="sub" id="fm" style="margin-left:8px">'+esc(window._fm||'')+'</span></div></div>'}
+var FS=[['Slow to load on mobile','slow mobile loading'],['Cluttered or confusing homepage','a cluttered homepage'],['Weak product photos or pages','weak product photos'],['Long or confusing checkout','a long checkout'],['No reviews, returns policy or contact details','missing trust signals like reviews or a returns policy'],['Hard to use on a phone','a layout that is hard to use on a phone'],['No clear offer or call to action','no clear call to action'],['Looks outdated','an outdated design']],FN=[['Takes orders only by DM','orders being taken only by DM'],['No website link in bio','no website link in the bio'],['Customers cannot browse the full range online','no way to browse the full range online'],['Prices only shown in posts','prices only shown in posts']];
+function fkList(t){return t==='No store yet'?FN:FS}
+function fkHtml(t){return fkList(t).map(function(x,i){return '<label style="display:flex;gap:8px;align-items:center;margin:4px 0;font-size:14px;text-transform:none;letter-spacing:0;color:inherit"><input type="checkbox" class="fkc" value="'+i+'" onchange="fkSet()" style="width:auto">'+x[0]+'</label>'}).join('')+'<div class="sub" id="fks" style="margin:6px 0 0"></div>'}
+function fkRender(){$('fcl').innerHTML=fkHtml($('ft').value);$('fo').value=''}
+function fkSet(){var L=fkList($('ft').value),p=[];document.querySelectorAll('.fkc').forEach(function(c){if(c.checked)p.push(L[+c.value][1])});$('fo').value=p.length>1?p.slice(0,-1).join(', ')+' and '+p[p.length-1]:p.join('');var n=p.length;$('fks').textContent='Problems found: '+n+' of '+L.length+(n>=3?'. Strong lead.':n?'. Weak lead unless you find more.':'')}
+function openFind(k){var kw=$('fk').value.trim(),e=encodeURIComponent;window._fk=kw;if(!kw){$('fm').textContent='Type a keyword first.';return}
+  var u=k==='ads'?'https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=IN&media_type=all&search_type=keyword_unordered&q='+e(kw):k==='google'?'https://www.google.com/search?start=10&q='+e(kw+' buy online India'):'https://www.google.com/search?q='+e('site:instagram.com "DM to order" '+kw);
+  window.open(u,'_blank')}
+function addFound(){var b=$('fb').value.trim();window._fk=$('fk').value.trim();window._fcat=$('fc').value;if(!b){$('fm').textContent='Enter the brand name.';return}
+  if(list().some(function(x){return (x.brand||'').toLowerCase()===b.toLowerCase()})){$('fm').textContent='That brand is already in your leads.';return}
+  var t=$('ft').value,l={id:'l'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),n:Math.max.apply(null,list().map(function(x){return x.n||0}).concat([0]))+1,stage:'New Lead',added:today(),fu:0,audit:'No',founding:'No',budget:'Unknown',brand:b,link:$('fl').value.trim(),observation:$('fo').value.trim(),leadType:t,source:{'Running ads':'Meta Ad Library','Weak existing store':'Google','No store yet':'Instagram'}[t],category:$('fc').value,platform:t==='No store yet'?'None (no store)':'Unknown',log:[{t:today(),x:'Found via lead finder'}]};
+  window._fm='Saved '+b+'. Add its contact details from the Leads list.';saveLead(l)}
+function gapList(){var g=settings.gaps;return g&&g.length?g:GAPS}
+function setGaps(v){var a=v.split(/[ ,]+/).map(Number).filter(function(x){return x>0}).slice(0,5);a=a.filter(function(x,i){return i===0||x>a[i-1]});settings.gaps=a.length?a:null;saveSettings();render()}
+function repFu(){var L=list().filter(function(l){return l.firstMsg&&reach(l)>=2}),N=gapList().length,r=[],t=L.length;for(var i=0;i<=N;i++){var c=L.filter(function(l){return (+l.fu||0)===i}).length;r.push([i?'After follow-up '+i:'After first message',c,t?Math.round(c/t*100)+'% of replies':null])}return t?bars(r)+'<div class="sub">Based on '+t+' lead(s) that replied.</div>':'<div class="sub">No replies yet. This fills in as your leads reply.</div>'}
+function draft(l){var n=l.stage==='New Lead'?-1:(+l.fu||0),f=l.contact?l.contact.split(' ')[0]:'',ob=(l.observation||'').replace(/\.$/,''),lo=ob?ob.charAt(0).toLowerCase()+ob.slice(1):'a few things on the store that could be improved',G=gapList(),ix=n<0?0:(n>=G.length-1?5:n+1),t=(settings.tpl&&settings.tpl[ix])||TPLD[ix];
+  return t.replace(/\{hi\}/g,function(){return 'Hi'+(f?' '+f:'')+','}).replace(/\{brand\}/g,function(){return l.brand||'your brand'}).replace(/\{obs\}/g,function(){return lo})}
+function rq0(){var a=queue().filter(function(x){return x.k==='fu'}).map(function(x){return x.l.id}),b=list().filter(function(l){return l.stage==='New Lead'}).map(function(l){return l.id});return a.concat(b).slice(0,50)}
+function startReview(){window._rq=rq0();if(window._rq.length)openDraft(window._rq[0]);else alert('Nothing to send right now.')}
+function doneSend(id){sent(id);if(window._rq&&window._rq.length>1){window._rq.shift();openDraft(window._rq[0])}else{window._rq=null;closeM()}}
+function skipRq(){window._rq.shift();if(window._rq.length)openDraft(window._rq[0]);else closeM()}
+function chBtn(l){var r=l.route,h=(l.handle||'').trim(),d=h.replace(/\D/g,''),b=function(t){return '<button class="btn" onclick="openCh(\''+l.id+'\')">'+t+'</button>'};
+  if(r==='WhatsApp'&&d.length>=10)return b('Open WhatsApp');if(r==='Email'&&h.indexOf('@')>0)return b('Open email')+'<button class="btn" id="gmb" onclick="gmailDraft(\''+l.id+'\')">Create Gmail draft</button>';if(r==='Instagram DM'||l.link)return b('Copy and open profile');return ''}
+function openCh(id){var l=leads[id],t=$('dt').value,r=l.route,h=(l.handle||'').trim(),d=h.replace(/\D/g,'');
+  if(r==='WhatsApp')window.open('https://wa.me/'+(d.length===10?'91'+d:d)+'?text='+encodeURIComponent(t),'_blank');
+  else if(r==='Email')window.open('mailto:'+h+'?subject='+encodeURIComponent('Quick idea for '+l.brand)+'&body='+encodeURIComponent(t+'\n\nRegards,\nCart Wise Co'));
+  else{copyD();var u=l.link||(h&&h.indexOf('@')<0?'https://instagram.com/'+h.replace(/^@/,''):'');if(u)window.open(/^https?:/.test(u)?u:'https://'+u,'_blank')}}
+function tlList(l){var a=(l.log||[]).slice().reverse();return a.length?a.map(function(e){return '<div class="kv"><span>'+esc(e.x)+'</span><span class="sub" style="margin:0">'+fmt(e.t)+'</span></div>'}).join(''):'<div class="sub">No activity yet. Messages you send and notes you add will show here.</div>'}
+function tlBox(l){return '<div style="display:flex;gap:8px;margin-bottom:10px"><select id="tlk" style="width:160px"><option>Note</option><option>Reply received</option><option>Call</option><option>Message sent</option></select><input id="tlx" placeholder="What happened?"><button class="btn pri" onclick="addLog()">Add</button></div><div id="tl">'+tlList(l)+'</div>'}
+function addLog(){var k=$('tlk').value,x=$('tlx').value.trim();if(!x&&k==='Note')return;var c=window._cur;c.log=(c.log||[]).concat([{t:today(),x:k+(x?': '+x:'')}]);if(k==='Reply received'&&!$('f_replyDate').value)$('f_replyDate').value=today();$('tl').innerHTML=tlList(c);$('tlx').value=''}
+function vTpl(){var N=['First message','Follow-up 1','Follow-up 2','Follow-up 3','Follow-up 4','Follow-up 5 (last)'];return '<h1>Templates</h1><p class="sub">Use {hi}, {brand} and {obs} (your "what I noticed" line). Changes save as you leave each box.</p><div class="card t-purple">'+N.map(function(n,i){return '<div style="margin-bottom:12px"><label>'+n+'</label><textarea rows="3" onchange="setTpl('+i+',this.value)">'+esc((settings.tpl&&settings.tpl[i])||TPLD[i])+'</textarea></div>'}).join('')+'<button class="btn" onclick="resetTpl()">Reset to defaults</button></div>'}
+function setTpl(i,v){settings.tpl=settings.tpl||TPLD.slice();settings.tpl[i]=v;saveSettings()}
+function resetTpl(){settings.tpl=null;saveSettings();render()}
+
+/* storage */
+function lsGet(){try{var r=JSON.parse(localStorage.getItem('cwc-tracker')||'null');if(r){leads=r.leads||{};settings=Object.assign(settings,r.settings||{})}}catch(e){}}
+function lsPut(){try{localStorage.setItem('cwc-tracker',JSON.stringify({leads:leads,settings:settings}))}catch(e){}}
+function saveLead(l){leads[l.id]=l;if(col)col.doc(l.id).set(l).catch(function(){});else lsPut();render()}
+function delLead(id){delete leads[id];if(col)col.doc(id).delete().catch(function(){});else lsPut();render()}
+function saveSettings(){if(col)col.doc('settings').set(settings).catch(function(){});else lsPut()}
+async function init(){lsGet();$('where').textContent='Your leads are saved in this browser only.';ready=true;render();
+  try{var c=window.claude&&await claude.use('db'),u=window.claude&&await claude.use('user');if(!c||!u)return;var id=await u.id();if(!id)return;var ref=c.collection('data/users/'+id);
+    ref.onSnapshot(function(s){leads={};s.docs.forEach(function(d){var v=d.data();if(d.id==='settings')settings=Object.assign(settings,v);else leads[d.id]=v});col=ref;$('where').textContent='Your leads are saved to your account. Only you can see them.';render()},function(){});}catch(e){}}
+
+/* shell */
+var ICON={home:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',leads:'<path d="M4 5h16M4 12h16M4 19h16"/>',pipe:'<path d="M4 4h5v16H4zM10 4h5v10h-5zM16 4h4v6h-4z"/>',num:'<path d="M5 20V10M12 20V4M19 20v-7"/>',tpl:'<path d="M4 4h16v12H8l-4 4z"/>',find:'<path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-4-4"/>'};
+function render(){if(!ready)return;
+  var T=[['home','Home'],['leads','Leads'],['pipe','Pipeline'],['find','Find leads'],['num','Reports'],['tpl','Templates']];
+  $('nav').innerHTML=T.map(function(t){return '<button class="'+(tab===t[0]?'on':'')+'" onclick="go(\''+t[0]+'\')"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICON[t[0]]+'</svg>'+t[1]+'</button>'}).join('');
+  $('view').innerHTML=tab==='home'?vHome():tab==='leads'?vLeads():tab==='pipe'?vPipe():tab==='tpl'?vTpl():tab==='find'?vFind():vNum();var n=queue().length;document.title=(n?'('+n+') ':'')+'Cart Wise Co: Lead Tracker'}
+function go(t){tab=t;render()}
+function gsearch(v){q=v.toLowerCase();if(tab!=='leads'&&tab!=='pipe')tab='leads';render()}
+function match(l){return !q||((l.brand||'')+(l.contact||'')+(l.handle||'')+(l.link||'')).toLowerCase().indexOf(q)>=0}
+function stats(){var L=list(),now=new Date(),ms=iso(new Date(now.getFullYear(),now.getMonth(),1)),me=iso(new Date(now.getFullYear(),now.getMonth()+1,1)),won=L.filter(function(l){return l.stage==='Won'}),sum=function(a){return a.reduce(function(s,l){return s+(+l.value||0)},0)};
+  return {L:L,won:won,sum:sum,now:now,month:sum(won.filter(function(l){return l.wonDate>=ms&&l.wonDate<me})),all:sum(won),quotes:sum(L.filter(function(l){return l.stage==='Quote Sent'}))}}
+function legend(){var L=list();return '<div class="legend"><button class="'+(sf?'':'on')+'" onclick="sf=\'\';render()">All '+L.length+'</button>'+STAGES.map(function(s){return '<button class="'+(sf===s?'on':'')+'" onclick="sf=\''+s+'\';render()"><i class="dot" style="--c:'+SC[s]+'"></i>'+s+' '+L.filter(function(l){return l.stage===s}).length+'</button>'}).join('')+'</div>'}
+
+/* Home */
+function queue(){var qq=[];list().forEach(function(l){var f=fuStatus(l),n=naStatus(l),v=(+l.value||0)/1000;
+  if(f==='Overdue'||f==='Due today')qq.push({l:l,k:'fu',sc:f==='Overdue'?200+gap(today(),due(l)):100,tg:f,why:'Follow-up '+((+l.fu||0)+1)+' of '+gapList().length+', '+(f==='Overdue'?gap(today(),due(l))+' day(s) late':'due today')});
+  else if(f==='Close or Lost')qq.push({l:l,k:'close',sc:50,tg:'',why:'All follow-ups sent. Close this lead as lost.'});
+  if(n==='Overdue'||n==='Due today'||n==='Set date')qq.push({l:l,k:'na',sc:n==='Overdue'?300+v:n==='Due today'?150+v:80,tg:n,why:l.stage+(l.value?' '+inr(l.value):'')+(n==='Set date'?': pick a next action date':n==='Overdue'?', chase is '+gap(today(),l.nextAction)+' day(s) late':', chase is due today')})});
+  return qq.sort(function(a,b){return b.sc-a.sc})}
+function tg(s){return s?'<span class="tag '+(s==='Overdue'||s==='Set date'?'bad':s==='Due today'?'warn':'ok')+'">'+s+'</span>':''}
+function gauge(p){var len=219.9;return '<svg viewBox="0 0 160 96" style="width:100%;max-width:260px"><path d="M10 84A70 70 0 0 1 150 84" fill="none" stroke="var(--chip)" stroke-width="14" stroke-linecap="round"/><path d="M10 84A70 70 0 0 1 150 84" fill="none" stroke="#2e844a" stroke-width="14" stroke-linecap="round" stroke-dasharray="'+(len*p/100)+' '+len+'"/><text x="80" y="76" text-anchor="middle" font-size="24" font-weight="700" fill="var(--ink)">'+Math.round(p)+'%</text></svg>'}
+function planCard(){var td=today(),found=0,first=0,fu=0;list().forEach(function(l){(l.log||[]).forEach(function(e){if(e.t!==td)return;if(e.x==='Found via lead finder')found++;else if(e.x==='First message sent')first++;else if(/^Follow-up \d+ sent$/.test(e.x))fu++})});
+  var T=settings.perDay||15,due=queue().filter(function(x){return x.k==='fu'}).length,row=function(n,a,b,hint){var p=b?Math.min(100,Math.round(a/b*100)):100;return '<div style="margin:12px 0"><div style="display:flex;justify-content:space-between;font-size:14px"><b>'+n+'</b><span>'+a+' of '+b+'</span></div><div class="pt"><div class="pf'+(p>=100?' done':'')+'" style="width:'+p+'%"></div></div><div class="sub" style="margin:0">'+hint+'</div></div>'},
+  nx=due?['Clear '+due+' follow-ups','startReview()']:found<T?['Find leads',"go('find')"]:first<T?['Send first messages','startReview()']:['All done for today',''];
+  return '<div class="card plan" style="margin-bottom:16px"><h2>Your plan for today</h2>'+row('1. Follow up',fu,fu+due,due?due+' still due. Do these first, they close the most deals.':'All follow-ups are done for today.')+row('2. Find new leads',found,T,'Use Find leads. Goal: '+T+' well-checked leads (change it under Reports, Targets).')+row('3. Send first messages',first,T,'Start review sends new leads after your overdue follow-ups.')+(nx[1]?'<button class="btn pri" onclick="'+nx[1]+'">Next: '+nx[0]+'</button>':'<b style="color:#7ce0a8">'+nx[0]+'</b>')+'</div>'}
+function vHome(){var s=stats(),g=settings.goal||1,pct=Math.min(100,s.month/g*100),dim=new Date(s.now.getFullYear(),s.now.getMonth()+1,0).getDate(),pace=g*s.now.getDate()/dim,diff=s.month-pace,qq=queue(),nl=s.L.filter(function(l){return l.stage==='New Lead'}),bad=s.L.filter(function(l){return checks(l).length}),w7=addDays(today(),-6);
+  var added=s.L.filter(function(l){return l.added>=w7}).length;
+  var h='<div style="float:right"><button class="btn pri" onclick="startReview()">Start review ('+rq0().length+')</button></div><h1>Home</h1><p class="sub">'+s.now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})+'</p>';
+  h+=planCard();h+='<div class="g"><div class="card t-purple" style="text-align:center"><h2 style="text-align:left">Monthly revenue goal</h2>'+gauge(pct)+'<b style="font-size:22px;display:block">'+inr(s.month)+'</b><span class="sub">of '+inr(settings.goal)+'</span><div style="margin-top:6px"><span class="tag '+(diff>=0?'ok':'bad')+'">'+(diff>=0?inr(Math.round(diff))+' ahead of pace':inr(Math.round(-diff))+' behind pace')+'</span></div></div>'+
+   '<div style="display:grid;gap:14px;grid-template-columns:1fr 1fr;align-content:start"><div class="card kpi t-teal"><small>Open quotes</small><b>'+inr(s.quotes)+'</b></div><div class="card kpi t-teal"><small>Expected at '+settings.win+'%</small><b>'+inr(Math.round(s.quotes*settings.win/100))+'</b></div><div class="card kpi t-amber"><small>Needs action</small><b>'+qq.length+'</b></div><div class="card kpi t-green"><small>Added this week</small><b>'+added+' / '+settings.perDay*settings.days+'</b></div></div></div>';
+  h+='<div class="g"><div class="card t-amber"><h2>Tasks for today ('+qq.length+')</h2>'+(qq.length?qq.slice(0,50).map(function(x){var l=x.l,id=l.id;
+    var a=x.k==='fu'?'<button class="btn sm" onclick="openDraft(\''+id+'\')">Draft</button><button class="btn sm pri" onclick="sent(\''+id+'\')">Sent</button>':x.k==='close'?'<button class="btn sm" onclick="edit(\''+id+'\')">Close lead</button>':'<button class="btn sm" onclick="push(\''+id+'\')">Push 2 days</button><button class="btn sm pri" onclick="edit(\''+id+'\')">Open</button>';
+    return '<div class="t" style="--c:'+SC[l.stage]+'"><div class="ic">'+esc((l.brand||'?').charAt(0).toUpperCase())+'</div><div class="x"><b>'+esc(l.brand)+' '+tg(x.tg)+'</b><span>'+esc(x.why)+'</span></div><div class="a">'+a+'</div></div>'}).join(''):'<div class="empty">Nothing is due. Add leads or send first messages.</div>')+'</div>'+
+   '<div class="card t-green"><h2>Ready for a first message ('+nl.length+')</h2>'+(nl.length?nl.slice(0,50).map(function(l){return '<div class="t" style="--c:'+SC[l.stage]+'"><div class="ic">'+esc((l.brand||'?').charAt(0).toUpperCase())+'</div><div class="x"><b>'+esc(l.brand)+'</b><span>'+esc(l.observation||'No observation yet')+'</span></div><div class="a"><button class="btn sm" onclick="openDraft(\''+l.id+'\')">Draft</button><button class="btn sm pri" onclick="sent(\''+l.id+'\')">Sent</button></div></div>'}).join(''):'<div class="empty">No new leads waiting. Click New lead to add one.</div>')+'</div></div>';
+  if(bad.length)h+='<div class="card t-red"><h2>Needs fixing ('+bad.length+')</h2>'+bad.slice(0,5).map(function(l){return '<div class="t"><div class="x"><b>'+esc(l.brand)+'</b><span>'+esc(checks(l).join(', '))+'</span></div><button class="btn sm" onclick="edit(\''+l.id+'\')">Fix</button></div>'}).join('')+'</div>';
+  return h}
+function sent(id){var l=Object.assign({},leads[id]);var first=l.stage==='New Lead';if(first){l.stage='Message Sent';l.firstMsg=today();l.fu=0}else l.fu=Math.min(gapList().length,(+l.fu||0)+1);l.lastContacted=today();l.log=(l.log||[]).concat([{t:today(),x:first?'First message sent':'Follow-up '+l.fu+' sent'}]);saveLead(l)}
+function push(id){var l=Object.assign({},leads[id]);l.nextAction=addDays(today(),2);saveLead(l)}
+
+/* Leads list */
+var lv={sort:'n',dir:1,f:{}},LF=[['category','Category'],['source','Source'],['leadType','Lead type'],['platform','Platform'],['route','Route']];
+function vLeads(){var k=lv.sort,d=lv.dir,L=list().filter(function(l){return match(l)&&(!sf||l.stage===sf)&&LF.every(function(x){return !lv.f[x[0]]||l[x[0]]===lv.f[x[0]]})});
+  var kv=function(l){return k==='stage'?STAGES.indexOf(l.stage):(k==='value'||k==='n')?(+l[k]||0):String(l[k]||'').toLowerCase()};
+  L.sort(function(a,b){var x=kv(a),y=kv(b);return (x<y?-1:x>y?1:0)*d});
+  var TH=[['n','#'],['brand','Lead'],['category','Category'],['source','Source'],['stage','Stage'],[null,'Next step'],['value','Deal value'],['added','Added']],V=settings.views||[];
+  var fl='<div class="legend" style="align-items:center">'+LF.map(function(x){return '<select onchange="setF(\''+x[0]+'\',this.value)" style="width:auto"><option value="">'+x[1]+': all</option>'+OPT[x[0]].map(function(o){return '<option'+(lv.f[x[0]]===o?' selected':'')+'>'+esc(o)+'</option>'}).join('')+'</select>'}).join('')+'<button class="btn sm" onclick="lv.f={};sf=\'\';render()">Clear</button></div>';
+  var vw='<div class="legend" style="align-items:center"><small style="color:var(--mut)">Saved views</small>'+V.map(function(v,i){return '<span style="display:inline-flex"><button class="btn sm" onclick="applyView('+i+')">'+esc(v.n)+'</button><button class="btn sm neg" onclick="delView('+i+')" aria-label="Delete view">×</button></span>'}).join('')+'<input id="vn" placeholder="Name this view" style="width:150px"><button class="btn sm" onclick="saveView()">Save view</button></div>';
+  return '<h1>Leads</h1><p class="sub">'+L.length+' item(s). Click a column heading to sort. Click a lead to open it.</p>'+legend()+fl+vw+(L.length?'<div class="card" style="padding:0"><div class="tw"><table><tr>'+TH.map(function(h){return '<th'+(h[0]?' style="cursor:pointer" onclick="sortBy(\''+h[0]+'\')"':'')+'>'+h[1]+(h[0]===k?(d>0?' ▲':' ▼'):'')+'</th>'}).join('')+'</tr>'+
+   L.slice(0,more.l?9999:100).map(function(l){var st=fuStatus(l)||naStatus(l);return '<tr class="r" onclick="edit(\''+l.id+'\')"><td>'+(l.n||'')+'</td><td><a>'+esc(l.brand)+'</a>'+(l.contact?'<div class="sub" style="margin:0">'+esc(l.contact)+'</div>':'')+'</td><td>'+esc(l.category)+'</td><td>'+esc(l.source)+'</td><td>'+badge(l.stage)+'</td><td>'+tg(st)+'</td><td>'+(l.value?inr(l.value):'')+'</td><td>'+fmt(l.added)+'</td></tr>'}).join('')+'</table></div></div>'+(L.length>100&&!more.l?'<p><button class="btn" onclick="more.l=1;render()">Show all '+L.length+'</button></p>':''):'<div class="card empty">No leads match. Click New lead to add one.</div>')}
+function sortBy(k){lv.dir=lv.sort===k?-lv.dir:1;lv.sort=k;render()}
+function setF(k,v){lv.f[k]=v;render()}
+function saveView(){var n=$('vn').value.trim();if(!n)return;settings.views=(settings.views||[]).concat([{n:n,sf:sf,f:Object.assign({},lv.f),sort:lv.sort,dir:lv.dir}]);saveSettings();render()}
+function applyView(i){var v=settings.views[i];sf=v.sf||'';lv={sort:v.sort,dir:v.dir,f:Object.assign({},v.f)};render()}
+function delView(i){settings.views.splice(i,1);saveSettings();render()}
+function dropTo(e,s){e.preventDefault();var id=e.dataTransfer.getData('text/plain'),l=leads[id];if(!l||l.stage===s)return;l=Object.assign({},l);var old=l.stage;l.stage=s;if(s==='Message Sent'&&!l.firstMsg)l.firstMsg=today();if(['Replied','Call Booked','Quote Sent','Won'].indexOf(s)>=0&&!l.replyDate)l.replyDate=today();if(s==='Won'&&!l.wonDate)l.wonDate=today();l.log=(l.log||[]).concat([{t:today(),x:'Stage: '+old+' to '+s}]);saveLead(l);if((s==='Lost'&&!l.lostReason)||((s==='Quote Sent'||s==='Won')&&!l.value))edit(id)}
+/* import */
+var AL={brand:'brandorstore,store,name,company',contact:'contactperson,person',handle:'phone,email,phonehandleoremail,mobile,whatsapp',link:'url,website,storeorinstagramlink,instagram',route:'contactroute,channel',leadType:'',platform:'storeplatform',observation:'whatyounoticed',value:'dealvalue',added:'dateadded',firstMsg:'firstmessagedate'},AMAP={},DK=['added','firstMsg','lastContacted','replyDate','callDate','nextAction','wonDate'];
+['brand','contact','route','handle','link','category','source','leadType','platform','observation','stage','firstMsg','fu','audit','lastContacted','replyDate','callDate','nextAction','budget','service','dealType','value','founding','wonDate','lostReason','notes','added'].forEach(function(k){AMAP[k.toLowerCase()]=k});
+Object.keys(AL).forEach(function(k){AL[k].split(',').forEach(function(a){if(a)AMAP[a]=k})});
+function parseCsv(t){var d=t.split('\n')[0].indexOf('\t')>=0?'\t':',',r=[],row=[],c='',q=false;for(var i=0;i<t.length;i++){var ch=t[i];if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}else if(ch==='"')q=true;else if(ch===d){row.push(c);c=''}else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;row.push(c);c='';r.push(row);row=[]}else c+=ch}if(c||row.length){row.push(c);r.push(row)}return r.filter(function(x){return x.join('').trim()})}
+function toIso(s){var m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);if(m){var y=m[3].length===2?'20'+m[3]:m[3];return y+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2)}return /^\d{4}-\d{2}-\d{2}$/.test(s)?s:''}
+function prevImp(){var R=parseCsv($('imt').value);if(R.length<2){$('ims').textContent='Add a header row and at least one lead.';window._imp=[];return}
+  var H=R[0].map(function(h){return AMAP[h.toLowerCase().replace(/[^a-z0-9]/g,'')]||''}),n0=Math.max.apply(null,list().map(function(x){return x.n||0}).concat([0])),out=[],skip=0,seen={};list().forEach(function(l){seen[(l.brand||'').toLowerCase()]=1});
+  R.slice(1).forEach(function(r){var l={};H.forEach(function(k,i){if(k&&r[i]!=null)l[k]=String(r[i]).trim()});if(!l.brand||seen[l.brand.toLowerCase()]){skip++;return}seen[l.brand.toLowerCase()]=1;DK.forEach(function(k){if(l[k])l[k]=toIso(l[k])});
+    l.id='l'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);l.n=n0+out.length+1;l.stage=STAGES.indexOf(l.stage)>=0?l.stage:(l.firstMsg?'Message Sent':'New Lead');l.added=l.added||today();l.fu=+l.fu||0;l.value=l.value?+String(l.value).replace(/[^0-9.]/g,''):'';l.audit=l.audit||'No';l.founding=l.founding||'No';l.budget=l.budget||'Unknown';out.push(l)});
+  window._imp=out;$('ims').textContent=out.length+' lead(s) ready to import. '+skip+' skipped (no brand name, or brand already exists). Columns recognised: '+(H.filter(Boolean).join(', ')||'none')}
+function readImp(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(){$('imt').value=r.result;prevImp()};r.readAsText(f)}
+function openImport(){$('rec').innerHTML='<div class="rh"><div><small>Import</small><h1>Import leads</h1></div></div><div class="rb"><p class="sub" style="margin-top:14px">Choose a CSV file, or paste rows copied from Google Sheets or Excel. The first row must be column names such as Brand, Contact, Phone, Category, Source, Platform, Route, Stage, Notes.</p><input type="file" accept=".csv,.tsv,.txt" onchange="readImp(event)" style="margin-bottom:10px"><textarea id="imt" class="draft" oninput="prevImp()" placeholder="Or paste rows here"></textarea><p class="sub" id="ims"></p></div><div class="rf"><button class="btn" onclick="closeM()" style="margin-right:auto">Cancel</button><button class="btn pri" onclick="doImport()">Import leads</button></div>';window._imp=[];$('modal').style.display='block'}
+function doImport(){var a=window._imp||[];if(!a.length)return;a.forEach(function(l){leads[l.id]=l;if(col)col.doc(l.id).set(l).catch(function(){})});if(!col)lsPut();closeM();tab='leads';render()}
+
+/* Pipeline */
+function vPipe(){var L=list().filter(match);
+  return '<h1>Pipeline</h1><p class="sub">Drag a card to another column to move it, or click a card to open it.</p><div class="board">'+STAGES.map(function(s){var a=L.filter(function(l){return l.stage===s}),lim=more[s]?999:25,v=a.reduce(function(t,l){return t+(+l.value||0)},0);
+    return '<div class="lane" style="--c:'+SC[s]+'" ondragover="event.preventDefault()" ondrop="dropTo(event,\''+s+'\')"><h3>'+s+'<span>'+a.length+(v?', '+inr(v):'')+'</span></h3>'+a.slice(0,lim).map(function(l){var st=fuStatus(l)||naStatus(l);return '<div class="kc" draggable="true" ondragstart="event.dataTransfer.setData(\'text/plain\',\''+l.id+'\')" style="--c:'+SC[s]+'" onclick="edit(\''+l.id+'\')"><b>'+esc(l.brand)+'</b><small>'+esc(l.category||'No category')+(l.value?', '+inr(l.value):'')+'</small>'+(st?'<div style="margin-top:5px">'+tg(st)+'</div>':'')+'</div>'}).join('')+(a.length>lim?'<button class="btn sm" onclick="more[\''+s+'\']=1;render()">Show '+(a.length-lim)+' more</button>':'')+(a.length?'':'<small class="sub">No leads</small>')+'</div>'}).join('')+'</div>'}
+
+/* Reports */
+function bars(a,col){var m=Math.max.apply(null,a.map(function(r){return r[1]}).concat([1]));return a.map(function(r){return '<div class="br" style="--c:'+(r[3]||col||'var(--brand)')+'"><span>'+esc(r[0])+'</span><i><s style="width:'+(r[1]/m*100)+'%"></s></i><b>'+r[1]+(r[2]!=null?'<br><small style="color:var(--mut);font-weight:400">'+r[2]+'</small>':'')+'</b></div>'}).join('')}
+function vNum(){var s=stats(),L=s.L,cnt=function(f){return L.filter(f).length},N=['Logged','Messaged','Replied','Call booked','Quote sent','Won'],CL=['New Lead','Message Sent','Replied','Call Booked','Quote Sent','Won'];
+  var F=N.map(function(_,i){return cnt(function(l){return i===0||reach(l)>=i})}),rate=function(a,b){return b?Math.round(a/b*100)+'%':'–'},fr=F.map(function(v,i){return [N[i],v,i&&F[i-1]?Math.round(v/F[i-1]*100)+'% of previous':null,SC[CL[i]]]});
+  var by=function(k,o){var r=o.map(function(x){return [x,cnt(function(l){return l[k]===x})]}).filter(function(r){return r[1]});return r.length?bars(r):'<div class="sub">Nothing yet.</div>'};
+  var ms=[5,4,3,2,1,0].map(function(i){var d=new Date(s.now.getFullYear(),s.now.getMonth()-i,1),a=iso(d),b=iso(new Date(d.getFullYear(),d.getMonth()+1,1));return [d.toLocaleDateString('en-IN',{month:'short'}),s.sum(s.won.filter(function(l){return l.wonDate>=a&&l.wonDate<b}))]}),mx=Math.max.apply(null,ms.map(function(m){return m[1]}).concat([settings.goal||1]));
+  return '<h1>Reports</h1><p class="sub">How your outreach is converting.</p><div class="g"><div class="card"><h2>Funnel</h2>'+bars(fr)+'<div class="sub">Lost leads still count at the furthest stage they reached.</div></div>'+
+   '<div class="card"><h2>Rates</h2>'+[['Reply rate',rate(F[2],F[1])],['Win rate from replies',rate(F[5],F[2])],['Quote win rate',rate(F[5],F[4])],['Average won deal',s.won.length?inr(Math.round(s.all/s.won.length)):'–'],['Won all time',inr(s.all)],['Leads lost',cnt(function(l){return l.stage==='Lost'})]].map(function(r){return '<div class="kv"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>'}).join('')+'</div>'+
+   '<div class="card"><h2>Won per month</h2><div class="cols">'+ms.map(function(m){return '<div><i style="height:'+(m[1]/mx*110)+'px"></i>'+m[0]+'</div>'}).join('')+'</div><div class="sub" style="margin-top:6px">Tallest bar = your goal or best month.</div></div></div>'+
+   '<div class="g"><div class="card t-blue"><h2>Replies by follow-up</h2>'+repFu()+'</div><div class="card"><h2>By category</h2>'+by('category',OPT.category)+'</div><div class="card"><h2>By source</h2>'+by('source',OPT.source)+'</div><div class="card"><h2>Why leads were lost</h2>'+by('lostReason',OPT.lostReason)+'</div></div>'+
+   '<div class="card t-grey"><h2>Targets</h2><div class="set">'+[['goal','Monthly goal (₹)'],['win','Assumed quote win rate (%)'],['perDay','Leads per day'],['days','Working days a week']].map(function(x){return '<div><label>'+x[1]+'</label><input type="number" value="'+settings[x[0]]+'" onchange="setS(\''+x[0]+'\',this.value)"></div>'}).join('')+'</div><div style="margin-top:12px;max-width:380px"><label>Follow-up gaps in days from your first message (up to 5, for example 1, 3, 7, 14, 21)</label><input value="'+gapList().join(', ')+'" onchange="setGaps(this.value)"></div><div class="sub" style="margin:10px 0 0">The 30% win rate is a placeholder, not your data. Replace it with your real rate once you have sent a few quotes.</div></div>'}
+function setS(k,v){settings[k]=+v||0;saveSettings();render()}
+
+/* Record form (new + edit): every lead detail */
+var SEC=[
+ ['Lead information',[['brand','Brand or store *','t',1],['contact','Contact person','t'],['route','Contact route','s'],['handle','Phone, handle or email','t'],['link','Store or Instagram link','t'],['category','Category','s'],['source','Source','s'],['leadType','Lead type','s'],['platform','Store platform','s'],['added','Date added','d']]],
+ ['What you noticed',[['observation','One specific thing you noticed about their store','a',1]]],
+ ['Outreach',[['firstMsg','First message date','d'],['fu','Follow-ups done (0 to 5)','n'],['audit','Free audit sent?','y'],['lastContacted','Last contacted','d'],['replyDate','Reply date','d'],['callDate','Call date','d'],['nextAction','Next action date','d']]],
+ ['Deal',[['budget','Budget range','s'],['service','Service offered','s'],['dealType','Deal type','s'],['value','Deal value in ₹ (total for the deal)','n'],['founding','Founding client?','y'],['wonDate','Won date','d'],['lostReason','Lost reason','s']]],
+ ['Notes',[['notes','Notes and next action','a',1]]]];
+var OK={route:'route',category:'category',source:'source',leadType:'leadType',platform:'platform',budget:'budget',service:'service',dealType:'dealType',lostReason:'lostReason',audit:'yn',founding:'yn'};
+function fld(f,l){var k=f[0],v=l[k]==null?'':l[k],id='f_'+k,h;
+  if(f[2]==='a')h='<textarea id="'+id+'" rows="3">'+esc(v)+'</textarea>';
+  else if(f[2]==='s'||f[2]==='y')h='<select id="'+id+'"><option value=""></option>'+OPT[OK[k]].map(function(o){return '<option'+(o===v?' selected':'')+'>'+esc(o)+'</option>'}).join('')+'</select>';
+  else h='<input id="'+id+'" type="'+(f[2]==='d'?'date':f[2]==='n'?'number':'text')+'" value="'+esc(v)+'">';
+  return '<div class="'+(f[3]?'w':'')+'"><label>'+f[1]+'</label>'+h+'</div>'}
+function pathHtml(){var c=SC[window._stg]||SC['New Lead'],ix=STAGES.indexOf(window._stg),lost=window._stg==='Lost';
+  return '<ul class="path" style="--c:'+c+'">'+STAGES.slice(0,6).map(function(s,i){return '<li class="'+(!lost&&i<=ix?'on':'')+(i===ix?' cur':'')+'" style="'+(i===ix||(i<ix)?'--c:'+c:'')+'" onclick="setStage(\''+s+'\')">'+s+'</li>'}).join('')+'<li class="lost'+(lost?' on':'')+'" onclick="setStage(\'Lost\')">Closed lost</li></ul>'}
+function setStage(s){window._stg=s;$('pw').innerHTML=pathHtml();$('rhb').style.setProperty('--c',SC[s]);$('rst').innerHTML=badge(s)}
+function edit(id){var l=id?leads[id]:{id:'l'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),stage:'New Lead',added:today(),fu:0,audit:'No',founding:'No',budget:'Unknown',n:Math.max.apply(null,list().map(function(x){return x.n||0}).concat([0]))+1};
+  window._cur=Object.assign({},l);window._stg=l.stage;var c=id?checks(l):[];
+  $('rec').innerHTML='<div class="rh"><div class="big" id="rhb" style="--c:'+SC[l.stage]+'">'+esc((l.brand||'N').charAt(0).toUpperCase())+'</div><div><small>Lead'+(id?' #'+l.n:'')+'</small><h1>'+esc(l.brand||'New lead')+'</h1></div><span id="rst">'+badge(l.stage)+'</span><span class="sp"></span>'+(id?'<button class="btn" onclick="openDraft(\''+id+'\')">Draft message</button>':'')+'</div>'+
+   '<div class="pathw" id="pw">'+pathHtml()+'</div><div class="rb">'+(c.length?'<div class="warnbox"><b>Check this lead:</b> '+esc(c.join('. '))+'.</div>':'')+'<div id="err"></div>'+'<div class="sec">Activity</div>'+tlBox(l)+
+   SEC.map(function(s){return '<div class="sec">'+s[0]+'</div><div class="fg">'+s[1].map(function(f){return fld(f,l)}).join('')+'</div>'}).join('')+'</div>'+
+   '<div class="rf">'+(id?'<button class="btn neg" onclick="del()" style="margin-right:auto">Delete</button>':'')+'<button class="btn" onclick="closeM()">Cancel</button><button class="btn pri" onclick="saveM()">Save lead</button></div>';
+  $('modal').style.display='block';$('modal').scrollTop=0}
+function closeM(){window._rq=null;$('modal').style.display='none'}
+function saveM(){var l=Object.assign({},window._cur);
+  SEC.forEach(function(s){s[1].forEach(function(f){l[f[0]]=$('f_'+f[0]).value.trim()})});
+  if(!l.brand){$('err').innerHTML='<div class="errbox">Enter the brand or store name before saving.</div>';return}
+  l.stage=window._stg;if(window._stg!==window._cur.stage)l.log=(l.log||[]).concat([{t:today(),x:'Stage: '+window._cur.stage+' to '+window._stg}]);l.fu=Math.max(0,Math.min(5,+l.fu||0));l.value=l.value?+l.value:'';
+  if(l.stage==='Message Sent'&&!l.firstMsg)l.firstMsg=today();
+  if(['Replied','Call Booked','Quote Sent','Won'].indexOf(l.stage)>=0&&!l.replyDate)l.replyDate=today();
+  if(l.stage==='Won'&&!l.wonDate)l.wonDate=today();
+  saveLead(l);closeM()}
+function del(){if(confirm('Delete this lead for good?')){delLead(window._cur.id);closeM()}}
+function openDraft(id){var l=leads[id],nw=l.stage==='New Lead';
+  $('rec').innerHTML='<div class="rh"><div><small>Message</small><h1>'+esc(l.brand)+'</h1></div><span>'+badge(l.stage)+'</span></div><div class="rb"><p class="sub" style="margin-top:14px">'+(nw?'First message':'Follow-up '+((+l.fu||0)+1)+' of '+gapList().length)+'. Edit it so it sounds like you, then copy it.</p><div style="display:flex;gap:8px;margin-bottom:8px"><select id="tn" style="width:auto"><option>Short and casual English</option><option>Professional English</option><option>Hinglish (Hindi and English mix)</option></select><button class="btn" id="aib" onclick="aiDraft(\''+id+'\')">AI draft</button></div><textarea class="draft" id="dt">'+esc(draft(l))+'</textarea></div>'+
+   '<div class="rf"><button class="btn" onclick="closeM()" style="margin-right:auto">Close</button><button class="btn" id="cp" onclick="copyD()">Copy message</button>'+(window._rq&&window._rq.length>1?'<button class="btn" onclick="skipRq()">Skip</button>':'')+chBtn(l)+'<button class="btn pri" onclick="doneSend(\''+id+'\')">'+(window._rq&&window._rq.length>1?'I sent it, next':'I sent it')+'</button></div>';
+  $('modal').style.display='block'}
+function copyD(){var t=$('dt');t.select();var ok=function(){$('cp').textContent='Copied'};try{navigator.clipboard.writeText(t.value).then(ok,function(){document.execCommand('copy');ok()})}catch(e){try{document.execCommand('copy');ok()}catch(x){}}}
+async function exportCsv(){var cols=['n','added','brand','contact','route','handle','link','category','source','leadType','platform','observation','stage','firstMsg','fu','audit','lastContacted','replyDate','callDate','nextAction','budget','service','dealType','value','founding','wonDate','lostReason','notes'],qt=function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'};
+  var csv=cols.join(',')+'\n'+list().map(function(l){return cols.map(function(c){return qt(l[c])}).join(',')}).join('\n');
+  try{var d=window.claude&&await claude.use('downloads');if(!d){alert('Download is not available here.');return}await d.save({filename:'cart-wise-leads.csv',data:new Blob([csv],{type:'text/csv'})})}catch(e){}}
+$('modal').addEventListener('click',function(e){if(e.target.id==='modal')closeM()});
+init();
+</script>
+</body>
+</html>

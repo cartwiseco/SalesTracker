@@ -1,0 +1,17 @@
+brand,contact,route,handle,link,category,source,leadType,platform,observation,stage,firstMsg,fu,replyDate,wonDate,value,lostReason,added,notes
+Alpha Looms,Asha Rao,WhatsApp,9876500001,https://alphalooms.example,Fashion & Accessories,Meta Ad Library,Running ads,Shopify,Slow mobile loading,New Lead,,0,,,,,2026-11-23,New lead for first message
+Beta Kids,Bina Shah,WhatsApp,9876500002,https://betakids.example,Kids & Toys,Google,Weak existing store,WooCommerce,A long checkout,Message Sent,2026-11-22,0,,,,,2026-11-22,Follow-up due today
+Gamma Gems,Gauri Nair,Email,gauri@gammagems.example,https://gammagems.example,Fashion & Accessories,Google,Weak existing store,Shopify,Weak product photos,Message Sent,2026-11-18,0,,,,,2026-11-18,Overdue 4 days
+Delta Decor,Dev Mehta,Instagram DM,@deltadecor,https://instagram.com/deltadecor,Home & Lifestyle,Instagram,No store yet,None (no store),Orders only by DM,Message Sent,2026-11-10,2,,,,,2026-11-10,Overdue 6 days
+Echo Beauty,Esha Patel,WhatsApp,9876500005,https://echobeauty.example,Beauty & Wellness,Meta Ad Library,Running ads,Shopify,Slow mobile loading,Message Sent,2026-11-20,1,,,,,2026-11-20,Follow-up due today
+Fern Foods,Farah Khan,Email,farah@fernfoods.example,https://fernfoods.example,Food & D2C,Directory,Weak existing store,WooCommerce,An outdated design,Message Sent,2026-11-21,1,,,,,2026-11-21,Due tomorrow so not in tasks
+Gloss Studio,Gita Iyer,WhatsApp,9876500007,https://glossstudio.example,Beauty & Wellness,Google,Weak existing store,Wix / Other,No clear call to action,Message Sent,2026-10-20,5,,,,,2026-10-20,All follow-ups sent
+Hari Handloom,Hari Joshi,WhatsApp,9876500008,https://harihandloom.example,Fashion & Accessories,Referral,No store yet,None (no store),Prices only shown in posts,Replied,2026-11-12,2,2026-11-16,,,,2026-11-12,Replied after follow-up 2
+Ira Bags,Ira Das,Email,ira@irabags.example,https://irabags.example,Fashion & Accessories,Meta Ad Library,Running ads,Shopify,A cluttered homepage,Quote Sent,2026-11-08,1,2026-11-12,,85000,,2026-11-08,Quote out
+Jai Jewels,Jai Kapoor,WhatsApp,9876500010,https://jaijewels.example,Fashion & Accessories,Referral,Weak existing store,Shopify,Weak product photos,Won,2026-11-01,0,2026-11-02,2026-11-10,120000,,2026-11-01,Won this month
+Kiran Kids,Kiran Rao,WhatsApp,9876500011,https://kirankids.example,Kids & Toys,Google,Weak existing store,WooCommerce,A long checkout,Lost,2026-10-28,3,,,,Price too high,2026-10-28,Lost
+Lotus Linen,Lata Menon,WhatsApp,9876500012,https://lotuslinen.example,Home & Lifestyle,Google,Weak existing store,Shopify,Hard to use on a phone,Message Sent,20/11/2026,0,,,,,05/11/2026,dd/mm/yyyy date test
+"Mango & Co, ""Fresh"" Fruits",Manoj Pillai,Email,manoj@mangoco.example,https://mangoco.example,Food & D2C,Directory,Running ads,Custom,Missing trust signals,New Lead,,0,,,,,2026-11-23,Comma and quote marks test
+Mira Mats,Mira Sen,Email,mira@miramats.example,https://miramats.example,Home & Lifestyle,Google,Weak existing store,Shopify,An outdated design,Quote Sent,,0,,,,,2026-11-23,Missing data test
+alpha looms,Duplicate Person,WhatsApp,9876500099,https://alphalooms2.example,Fashion & Accessories,Google,Weak existing store,Shopify,Duplicate brand,New Lead,,0,,,,,2026-11-23,Should be skipped as duplicate
+,No Brand,WhatsApp,9876500098,,Other,Other,Running ads,Unknown,,New Lead,,0,,,,,2026-11-23,Should be skipped as empty brand

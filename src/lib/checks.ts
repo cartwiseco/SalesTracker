@@ -1,21 +1,26 @@
 import { Lead } from '../models/Lead';
 
-export const checks = (lead: Lead): string[] => {
+const same = (a: unknown, b: unknown): boolean =>
+  Boolean(a && b && String(a).trim().toLowerCase() === String(b).trim().toLowerCase());
+
+export const checks = (
+  lead: Lead,
+  allLeads: Record<string, Lead> | Lead[] = {},
+): string[] => {
+  const others = Array.isArray(allLeads)
+    ? allLeads.filter(other => other.id !== lead.id)
+    : Object.values(allLeads).filter(other => other.id !== lead.id);
   const warnings: string[] = [];
-  if (!lead.brand?.trim()) warnings.push('Brand is missing');
-  if (!lead.category) warnings.push('Category is missing');
-  if (!lead.source) warnings.push('Source is missing');
-  if (!lead.leadType) warnings.push('Lead type is missing');
-  if (!lead.platform) warnings.push('Platform is missing');
-  if (!lead.route) warnings.push('Route is missing');
-  if (['Replied', 'Call Booked', 'Quote Sent'].includes(lead.stage) && !lead.nextAction) {
-    warnings.push('Next action date is missing');
-  }
-  if (lead.stage === 'Quote Sent' && (!lead.value || lead.value <= 0)) {
-    warnings.push('Quote value is missing');
-  }
-  if (lead.stage === 'Won' && !lead.wonDate) warnings.push('Won date is missing');
-  if (lead.stage === 'Lost' && !lead.lostReason) warnings.push('Lost reason is missing');
-  if (!lead.handle && !lead.contact) warnings.push('Contact details are missing');
+
+  if (others.some(other => same(other.brand, lead.brand))) warnings.push('Duplicate brand');
+  if (lead.link?.trim() && others.some(other => same(other.link, lead.link))) warnings.push('Duplicate link');
+  if (lead.handle?.trim() && others.some(other => same(other.handle, lead.handle))) warnings.push('Duplicate contact');
+  if (lead.stage === 'New Lead' && lead.firstMsg) warnings.push('Stage still New Lead');
+  if (lead.stage !== 'New Lead' && lead.stage !== 'Lost' && !lead.firstMsg) warnings.push('Add first message date');
+  if (['Replied', 'Call Booked', 'Quote Sent', 'Won'].includes(lead.stage) && !lead.replyDate) warnings.push('Add reply date');
+  if ((lead.stage === 'Quote Sent' || lead.stage === 'Won') && !lead.value) warnings.push('Add deal value');
+  if (lead.stage === 'Won' && !lead.wonDate) warnings.push('Add won date');
+  if (lead.stage === 'Lost' && !lead.lostReason) warnings.push('Add lost reason');
+
   return warnings;
 };

@@ -16,7 +16,7 @@ const SC: Record<string, string> = {
 const STAGES = ['New Lead','Message Sent','Replied','Call Booked','Quote Sent','Won','Lost'];
 
 const Reports: React.FC = () => {
-  const { leads, settings } = useLeads();
+  const { leads, settings, saveSettings } = useLeads();
   const [funnel, setFunnel] = useState<Record<string, number>>({});
   const [byCategory, setByCategory] = useState<Record<string, number>>({});
   const [bySource, setBySource] = useState<Record<string, number>>({});
@@ -74,69 +74,62 @@ const Reports: React.FC = () => {
   const targetRevenueGoal = settings?.goal || 0;
   const gaps = settings?.gaps?.join(', ') || '1,3,7,14,21';
 
+  const funnelBars = STAGES.map(stage => ({ label: stage, count: funnel[stage] || 0, color: SC[stage] }));
+  const maxFunnel = Math.max(1, ...funnelBars.map(item => item.count));
+  const categoryMax = Math.max(1, ...Object.values(byCategory));
+  const sourceMax = Math.max(1, ...Object.values(bySource));
+  const replyMax = Math.max(1, ...Object.values(repliesByFu));
+
   return (
-    <div id="view" className="card" style={{padding:'20px'}}>
+    <div id="view">
       <h1>Reports</h1>
-      <p className="sub">Analytics derived from your leads data.</p>
+      <p className="sub">How your outreach is converting.</p>
 
-      {/* Funnel */}
-      <section>
-        <h2>Funnel (by stage)</h2>
-        <table className="tw">
-          <thead><tr>{STAGES.map(s=> <th key={s}>{s}</th>)}</tr></thead>
-          <tbody><tr>{STAGES.map(s=> <td key={s}>{funnel[s]||0}</td>)}</tr></tbody>
-        </table>
-        <p className="sub">Win rate: {winRate}%</p>
-        <p className="sub">Revenue this month: {inr(monthRevenue)}</p>
-      </section>
+      <div className="g">
+        <section className="card">
+          <h2>Funnel</h2>
+          {funnelBars.map(item => (
+            <div className="br" style={{'--c':item.color} as React.CSSProperties} key={item.label}><span>{item.label}</span><i><s style={{width:`${item.count/maxFunnel*100}%`}} /></i><b>{item.count}</b></div>
+          ))}
+          <p className="sub">Win rate: {winRate}%</p>
+          <p className="sub">Revenue this month: {inr(monthRevenue)}</p>
+        </section>
 
-      {/* By Category */}
-      <section style={{marginTop:'24px'}}>
-        <h2>Leads by Category</h2>
-        <table className="tw">
-          <thead><tr><th>Category</th><th>Count</th></tr></thead>
-          <tbody>
-            {Object.entries(byCategory).map(([cat,count])=> (
-              <tr key={cat}><td>{cat}</td><td>{count}</td></tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+        <section className="card">
+          <h2>Leads by Category</h2>
+          {Object.entries(byCategory).map(([category,count]) => (
+            <div className="br" style={{'--c':'var(--brand)'} as React.CSSProperties} key={category}><span>{category}</span><i><s style={{width:`${count/categoryMax*100}%`}} /></i><b>{count}</b></div>
+          ))}
+        </section>
 
-      {/* By Source */}
-      <section style={{marginTop:'24px'}}>
-        <h2>Leads by Source</h2>
-        <table className="tw">
-          <thead><tr><th>Source</th><th>Count</th></tr></thead>
-          <tbody>
-            {Object.entries(bySource).map(([src,count])=> (
-              <tr key={src}><td>{src}</td><td>{count}</td></tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+        <section className="card">
+          <h2>Leads by Source</h2>
+          {Object.entries(bySource).map(([source,count]) => (
+            <div className="br" style={{'--c':'var(--brand)'} as React.CSSProperties} key={source}><span>{source}</span><i><s style={{width:`${count/sourceMax*100}%`}} /></i><b>{count}</b></div>
+          ))}
+        </section>
 
-      {/* Replies by Follow‑up number */}
-      <section style={{marginTop:'24px'}}>
-        <h2>Replies by Follow‑up number</h2>
-        <table className="tw">
-          <thead><tr><th>Follow‑up #</th><th>Replies</th></tr></thead>
-          <tbody>
-            {Object.entries(repliesByFu).sort((a,b)=>+a[0]-+b[0]).map(([fu,count])=> (
-              <tr key={fu}><td>{fu}</td><td>{count}</td></tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+        <section className="card t-blue">
+          <h2>Replies by Follow-up</h2>
+          {Object.entries(repliesByFu).sort((a,b)=>+a[0]-+b[0]).map(([fu,count]) => (
+            <div className="br" style={{'--c':'var(--brand)'} as React.CSSProperties} key={fu}><span>{+fu === 0 ? 'After first message' : `After follow-up ${fu}`}</span><i><s style={{width:`${count/replyMax*100}%`}} /></i><b>{count}</b></div>
+          ))}
+          {Object.keys(repliesByFu).length === 0 && <div className="sub">No replies yet.</div>}
+        </section>
+      </div>
 
-      {/* Targets */}
-      <section style={{marginTop:'24px'}}>
+      <section className="card t-grey">
         <h2>Targets</h2>
-        <ul>
-          <li>Leads per day: {targetLeadsPerDay}</li>
-          <li>Revenue goal (monthly): {inr(targetRevenueGoal)}</li>
-          <li>Follow‑up gaps (days): {gaps}</li>
-        </ul>
+        <div className="set">
+          <div><label>Leads per day</label><input type="number" value={settings?.perDay || 0} onChange={e=>saveSettings({...(settings || {}), perDay:+e.target.value || 0} as any)} /></div>
+          <div><label>Monthly goal (₹)</label><input type="number" value={settings?.goal || 0} onChange={e=>saveSettings({...(settings || {}), goal:+e.target.value || 0} as any)} /></div>
+          <div><label>Assumed quote win rate (%)</label><input type="number" value={settings?.win || 30} onChange={e=>saveSettings({...(settings || {}), win:+e.target.value || 0} as any)} /></div>
+          <div><label>Working days a week</label><input type="number" value={settings?.days || 5} onChange={e=>saveSettings({...(settings || {}), days:+e.target.value || 0} as any)} /></div>
+        </div>
+        <div style={{marginTop:'12px',maxWidth:'380px'}}><label>Follow-up gaps in days</label><input value={gaps} onChange={e=>{
+          const clean = e.target.value.split(/[ ,]+/).map(Number).filter(n=>n>0).filter((n,i,a)=>i===0 || n>a[i-1]).slice(0,5);
+          if(clean.length) saveSettings({...(settings || {}), gaps:clean} as any);
+        }} /></div>
       </section>
     </div>
   );

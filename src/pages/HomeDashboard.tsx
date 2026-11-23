@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLeads } from '../data/firestore';
 import { iso, today, gap, inr } from '../lib/dates';
-import { DEFAULT_GAPS } from '../lib/followUps';
+import { checks } from '../lib/checks';
 import { buildQueue, QueueItem } from '../lib/queue';
 
 // Stage colors (same as reference)
@@ -29,8 +29,7 @@ function Gauge({percent}:{percent:number}){
 }
 
 const HomeDashboard: React.FC = () => {
-  const { leads, settings, saveSettings } = useLeads();
-  const [gapsInput, setGapsInput] = useState('');
+  const { leads, settings } = useLeads();
   const [queue, setQueue] = useState<QueueItem[]>([]);
 
   useEffect(()=>{
@@ -63,118 +62,73 @@ const HomeDashboard: React.FC = () => {
     firstMsg: settings?.perDay || 15,
   };
 
-  const handleGapsSave = () => {
-    const arr = gapsInput.split(/[ ,]+/).map(Number).filter(n=>n>0);
-    // enforce ascending order and remove duplicates beyond first
-    const clean = arr.filter((n,i)=> i===0 || n>arr[i-1]).slice(0,5);
-    const newSettings = {...settings, gaps: clean.length?clean:DEFAULT_GAPS};
-    saveSettings(newSettings as any);
-  };
-
   // Update document title with queue count
   useEffect(()=>{
     const count = queue.length;
     document.title = (count?`(${count}) `:'')+'Cart Wise Co: Lead Tracker';
   },[queue]);
 
+  const readyForFirstMessage = leadArray.filter(l => l.stage === 'New Lead').slice(0, 50);
+  const needsFixing = leadArray.filter(l => checks(l).length).slice(0, 5);
+
   return (
     <div id="view">
-      {/* Plan card */}
+      <h1>Home</h1>
+      <p className="sub">{now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+
       <div className="card plan" style={{marginBottom:'16px'}}>
         <h2>Your plan for today</h2>
-        {/* Follow‑ups */}
-        <div className="row" style={{marginBottom:'12px'}}>
-          <b>1. Follow up</b> {followUpsDue} of {planTargets.followUps}
-          <div className="pt"><div className={"pf"+(followUpsDue>=planTargets.followUps?" done":"")} style={{width:`${Math.min(100,followUpsDue/planTargets.followUps*100)}%`}}/></div>
-          <div className="sub">{followUpsDue?`${followUpsDue} still due.`:'All follow‑ups done.'}</div>
+        <div style={{margin:'12px 0'}}>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}><b>1. Follow up</b><span>{followUpsDue} of {planTargets.followUps + followUpsDue}</span></div>
+          <div className="pt"><div className={`pf${followUpsDue >= planTargets.followUps ? ' done' : ''}`} style={{width:`${Math.min(100, planTargets.followUps + followUpsDue ? followUpsDue / (planTargets.followUps + followUpsDue) * 100 : 0)}%`}} /></div>
+          <div className="sub" style={{margin:'0'}}>{followUpsDue ? `${followUpsDue} still due. Do these first, they close the most deals.` : 'All follow-ups are done for today.'}</div>
         </div>
-        {/* Find leads */}
-        <div className="row" style={{marginBottom:'12px'}}>
-          <b>2. Find new leads</b> {addedThisWeek} of {planTargets.find}
-          <div className="pt"><div className={"pf"+(addedThisWeek>=planTargets.find?" done":"")} style={{width:`${Math.min(100,addedThisWeek/planTargets.find*100)}%`}}/></div>
-          <div className="sub">Use Find leads. Goal: {planTargets.find} well‑checked leads.</div>
+        <div style={{margin:'12px 0'}}>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}><b>2. Find new leads</b><span>{addedThisWeek} of {planTargets.find}</span></div>
+          <div className="pt"><div className={`pf${addedThisWeek >= planTargets.find ? ' done' : ''}`} style={{width:`${Math.min(100, planTargets.find ? addedThisWeek / planTargets.find * 100 : 0)}%`}} /></div>
+          <div className="sub" style={{margin:'0'}}>Use Find leads. Goal: {planTargets.find} well-checked leads (change it under Reports, Targets).</div>
         </div>
-        {/* First messages */}
-        <div className="row" style={{marginBottom:'12px'}}>
-          <b>3. Send first messages</b> {firstMsgs} of {planTargets.firstMsg}
-          <div className="pt"><div className={"pf"+(firstMsgs>=planTargets.firstMsg?" done":"")} style={{width:`${Math.min(100,firstMsgs/planTargets.firstMsg*100)}%`}}/></div>
-          <div className="sub">Start review sends new leads after overdue follow‑ups.</div>
+        <div style={{margin:'12px 0'}}>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}><b>3. Send first messages</b><span>{firstMsgs} of {planTargets.firstMsg}</span></div>
+          <div className="pt"><div className={`pf${firstMsgs >= planTargets.firstMsg ? ' done' : ''}`} style={{width:`${Math.min(100, planTargets.firstMsg ? firstMsgs / planTargets.firstMsg * 100 : 0)}%`}} /></div>
+          <div className="sub" style={{margin:'0'}}>Start review sends new leads after your overdue follow-ups.</div>
         </div>
-        {/* Next button placeholder */}
         <button className="btn pri" onClick={()=>alert('Next step placeholder')}>Next</button>
       </div>
 
-      {/* KPI cards */}
       <div className="g">
-        <div className="card kpi t-teal">
-          <small>Monthly revenue goal</small>
+        <div className="card t-purple" style={{textAlign:'center'}}>
+          <h2 style={{textAlign:'left'}}>Monthly revenue goal</h2>
           <Gauge percent={pct} />
-          <b>{inr(monthRevenue)}</b>
+          <b style={{fontSize:'22px',display:'block'}}>{inr(monthRevenue)}</b>
           <span className="sub">of {inr(goal)}</span>
         </div>
-        <div className="card kpi t-teal">
-          <small>Open quotes</small>
-          <b>{inr(leadArray.filter(l=>l.stage==='Quote Sent').reduce((s,l:any)=>s+(l.value||0),0))}</b>
-        </div>
-        <div className="card kpi t-teal">
-          <small>Expected at {settings?.win||30}%</small>
-          <b>{inr(Math.round(leadArray.filter(l=>l.stage==='Quote Sent').reduce((s,l:any)=>s+(l.value||0),0)* (settings?.win||30)/100))}</b>
-        </div>
-        <div className="card kpi t-amber">
-          <small>Needs action</small>
-          <b>{queue.length}</b>
-        </div>
-        <div className="card kpi t-green">
-          <small>Added this week</small>
-          <b>{addedThisWeek} / {(settings?.perDay||15)*(settings?.days||5)}</b>
+        <div className="kpis">
+          <div className="card kpi t-teal"><small>Open quotes</small><b>{inr(leadArray.filter(l=>l.stage==='Quote Sent').reduce((s,l:any)=>s+(l.value||0),0))}</b></div>
+          <div className="card kpi t-teal"><small>Expected at {settings?.win||30}%</small><b>{inr(Math.round(leadArray.filter(l=>l.stage==='Quote Sent').reduce((s,l:any)=>s+(l.value||0),0)*(settings?.win||30)/100))}</b></div>
+          <div className="card kpi t-amber"><small>Needs action</small><b>{queue.length}</b></div>
+          <div className="card kpi t-green"><small>Added this week</small><b>{addedThisWeek} / {(settings?.perDay||15)*(settings?.days||5)}</b></div>
         </div>
       </div>
 
-      {/* Tasks for today */}
-      <div className="card t-amber" style={{marginTop:'24px'}}>
-        <h2>Tasks for today ({queue.length})</h2>
-        {queue.length===0 ? (
-          <div className="empty">Nothing is due. Add leads or send first messages.</div>
-        ) : (
-          <div className="tw">
-            <table>
-              <tbody>
-                {queue.slice(0,50).map((q:any)=>{
-                  const l = q.lead;
-                  const actionBtn = q.key==='fu' ? (
-                    <>
-                      <button className="btn sm" onClick={()=>alert('Draft placeholder')}>Draft</button>
-                      <button className="btn sm pri" onClick={()=>alert('Sent placeholder')}>Sent</button>
-                    </>
-                  ) : q.key==='close' ? (
-                    <button className="btn sm" onClick={()=>alert('Close lead placeholder')}>Close lead</button>
-                  ) : (
-                    <>
-                      <button className="btn sm" onClick={()=>alert('Push 2 days')}>Push 2 days</button>
-                      <button className="btn sm pri" onClick={()=>alert('Open')}>Open</button>
-                    </>
-                  );
-                  return (
-                    <tr key={l.id} className="t" style={{ '--c': SC[l.stage] } as React.CSSProperties}>
-                      <td className="ic">{(l.brand||'?').charAt(0).toUpperCase()}</td>
-                      <td><b>{l.brand}</b> {q.tag && <span className="tag {q.tag==='Overdue'||q.tag==='Due today'?'bad':'warn'}">{q.tag}</span>}</td>
-                      <td>{actionBtn}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+      <div className="g">
+        <div className="card t-amber">
+          <h2>Tasks for today ({queue.length})</h2>
+          {queue.length === 0 ? <div className="empty">Nothing is due. Add leads or send first messages.</div> : queue.slice(0,50).map(q => {
+            const l = q.lead;
+            const action = q.key==='fu' ? <><button className="btn sm">Draft</button><button className="btn sm pri">Sent</button></> : q.key==='close' ? <button className="btn sm">Close lead</button> : <><button className="btn sm">Push 2 days</button><button className="btn sm pri">Open</button></>;
+            return <div className="t" style={{'--c':SC[l.stage]} as React.CSSProperties} key={l.id}><div className="ic">{(l.brand||'?').charAt(0).toUpperCase()}</div><div className="x"><b>{l.brand}</b>{q.tag && <span className={`tag ${q.tag==='Overdue'||q.tag==='Set date'?'bad':q.tag==='Due today'?'warn':'ok'}`}> {q.tag}</span>}<span /></div><div className="a">{action}</div></div>;
+          })}
+        </div>
+        <div className="card t-green">
+          <h2>Ready for a first message ({readyForFirstMessage.length})</h2>
+          {readyForFirstMessage.length === 0 ? <div className="empty">No new leads waiting.</div> : readyForFirstMessage.map(l => (
+            <div className="t" style={{'--c':SC[l.stage]} as React.CSSProperties} key={l.id}><div className="ic">{(l.brand||'?').charAt(0).toUpperCase()}</div><div className="x"><b>{l.brand}</b><span>{l.observation || 'No observation yet'}</span></div><div className="a"><button className="btn sm">Draft</button><button className="btn sm pri">Sent</button></div></div>
+          ))}
+        </div>
       </div>
 
-      {/* Editable gaps */}
-      <div className="card" style={{marginTop:'24px'}}>
-        <h2>Edit follow‑up gaps</h2>
-        <input placeholder="e.g. 1,3,7,14,21" value={gapsInput} onChange={e=>setGapsInput(e.target.value)} />
-        <button className="btn pri" onClick={handleGapsSave}>Save gaps</button>
-        <div className="sub">Current gaps: { (settings?.gaps||DEFAULT_GAPS).join(', ') }</div>
-      </div>
+      {needsFixing.length > 0 && <div className="card t-red"><h2>Needs fixing ({needsFixing.length})</h2>{needsFixing.map(l => <div className="t" key={l.id}><div className="x"><b>{l.brand}</b><span>{checks(l).join(', ')}</span></div><button className="btn sm">Fix</button></div>)}</div>}
     </div>
   );
 };

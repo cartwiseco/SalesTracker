@@ -1,6 +1,6 @@
 import { Lead } from '../models/Lead';
 import { Settings } from '../models/Settings';
-import { addDays, gap, today, fmt } from './dates';
+import { addDays, today, fmt } from './dates';
 
 export const DEFAULT_GAPS = [1, 3, 7, 14, 21];
 
@@ -20,18 +20,19 @@ export const fuStatus = (lead: Lead, settings: Settings | null): string => {
   const dueDate = due(lead, settings);
   if (!dueDate) return '';
   if (dueDate === 'done') return 'Close or Lost';
-  const difference = gap(dueDate, today());
-  if (difference < 0) return 'Overdue';
-  if (difference === 0) return 'Due today';
+  const todayDate = today();
+  if (dueDate < todayDate) return 'Overdue';
+  if (dueDate === todayDate) return 'Due today';
   return 'Upcoming';
 };
 
 export const naStatus = (lead: Lead): string => {
   if (!['Replied', 'Call Booked', 'Quote Sent'].includes(lead.stage)) return '';
   if (lead.nextAction) {
-    const difference = gap(today(), lead.nextAction);
-    if (difference > 0) return 'Overdue';
-    if (difference === 0) return 'Due today';
+    const todayDate = today();
+    if (lead.nextAction < todayDate) return 'Overdue';
+    if (lead.nextAction === todayDate) return 'Due today';
+    return 'Upcoming';
   }
   return lead.nextAction ? fmt(lead.nextAction) : 'Set date';
 };

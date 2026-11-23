@@ -45,3 +45,17 @@ export const buildQueue = (
 
   return items.sort((a, b) => b.score - a.score).slice(0, 50);
 };
+
+export const startReviewList = (
+  leads: Record<string, Lead>,
+  settings: Settings | null,
+): string[] => {
+  const followUpIds = buildQueue(leads, settings)
+    .filter(item => item.key === 'fu')
+    .map(item => item.lead.id);
+  const newLeadIds = Object.values(leads)
+    .filter(lead => lead.stage === 'New Lead')
+    .sort((a, b) => (a.n || 0) - (b.n || 0))
+    .map(lead => lead.id);
+  return [...followUpIds, ...newLeadIds].slice(0, 50);
+};

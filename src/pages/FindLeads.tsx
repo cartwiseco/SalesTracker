@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLeads } from '../data/firestore';
-import { iso, today } from '../utils/date';
-import { inr } from '../utils/format';
+import { today } from '../lib/dates';
 
 // Option lists (same as reference)
 export const OPT = {
@@ -141,12 +140,13 @@ const FindLeads: React.FC = () => {
   };
 
   return (
-    <div id="view" className="card" style={{padding:'20px'}}>
+    <div id="view">
       <h1>Find leads</h1>
       <p className="sub">Type a product keyword, run one of the three searches, and save good brands straight into your leads.</p>
 
       {/* Keyword & category */}
-      <div style={{display:'flex',gap:'10px',flexWrap:'wrap',marginBottom:'16px'}}>
+      <div className="card t-grey" style={{marginBottom:'12px'}}>
+      <div style={{display:'flex',gap:'10px',flexWrap:'wrap'}}>
         <div>
           <label>Product keyword</label>
           <input id="fk" value={keyword} onChange={e=>setKeyword(e.target.value)} placeholder="e.g. handloom sarees" style={{width:'240px'}} />
@@ -158,10 +158,11 @@ const FindLeads: React.FC = () => {
           </select>
         </div>
       </div>
+      </div>
 
       {/* Three finder cards */}
       <div className="g" style={{marginBottom:'24px'}}>
-        <div className="card t-grey" style={{marginBottom:'12px'}}>
+        <div className="card t-blue">
           <h2>Running ads</h2>
           <p>Brands paying for traffic, so they have a budget.</p>
           <button className="btn pri" onClick={() => openFind('ads')}>Open Meta Ad Library (India)</button>
@@ -171,7 +172,7 @@ const FindLeads: React.FC = () => {
             <li>Note one specific problem you could fix.</li>
           </ul>
         </div>
-        <div className="card t-grey" style={{marginBottom:'12px'}}>
+        <div className="card t-amber">
           <h2>Weak existing store</h2>
           <p>Real stores that rank on later Google pages.</p>
           <button className="btn pri" onClick={() => openFind('google')}>Search Google, pages 2‑4</button>
@@ -181,7 +182,7 @@ const FindLeads: React.FC = () => {
             <li>Save the ones with a clear, fixable problem.</li>
           </ul>
         </div>
-        <div className="card t-grey" style={{marginBottom:'12px'}}>
+        <div className="card t-green">
           <h2>No store yet</h2>
           <p>Instagram sellers who take orders by DM.</p>
           <button className="btn pri" onClick={() => openFind('insta')}>Find Instagram sellers</button>
@@ -194,8 +195,9 @@ const FindLeads: React.FC = () => {
       </div>
 
       {/* Quick‑check form (shown after selecting a lead type) */}
-      <div style={{marginTop:'20px',borderTop:'1px solid var(--line)',paddingTop:'16px'}}>
+      <div className="card t-purple" style={{marginTop:'12px'}}>
         <h2>Save a lead</h2>
+        <div className="sub" style={{margin:'0 0 10px'}}>Added today with the finder: {addedToday}</div>
         <div style={{marginBottom:'8px'}}>
           <label>Brand</label>
           <input id="fb" value={brand} onChange={e=>setBrand(e.target.value)} style={{width:'200px'}} />
