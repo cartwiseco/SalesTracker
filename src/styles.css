@@ -19,6 +19,8 @@ html,body,#root { margin:0; padding:0; height:100%; background:var(--bg); color:
 *{box-sizing:border-box;}
 button,input,select,textarea{font:inherit; color:inherit; border:none; background:none;}
 button{cursor:pointer;}
+.auth-bypass-banner{position:fixed;z-index:1000;left:0;right:0;top:0;padding:8px 12px;text-align:center;background:#c4283f;color:#fff;font-weight:800;font-size:13px;}
+.auth-bypass-banner + .app{padding-top:32px;}
 
 .app{display:flex; min-height:100vh;}
 aside{width:224px; flex:none; background:var(--card); border-right:1px solid var(--line); padding:20px 12px; position:sticky; top:0; height:100vh; align-self:flex-start;}

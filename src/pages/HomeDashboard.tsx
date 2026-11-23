@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { UserContext } from '../App';
+import React, { useEffect, useState } from 'react';
 import { useLeads } from '../data/firestore';
-import { iso, today, addDays, gap } from '../utils/date';
-import { inr, fmt } from '../utils/format';
+import { iso, today, gap, inr } from '../lib/dates';
+import { DEFAULT_GAPS } from '../lib/followUps';
+import { buildQueue, QueueItem } from '../lib/queue';
 
 // Stage colors (same as reference)
 const SC: Record<string, string> = {
@@ -14,63 +14,6 @@ const SC: Record<string, string> = {
   Won: '#2e844a',
   Lost: '#ba0517',
 };
-
-const STAGES = ['New Lead','Message Sent','Replied','Call Booked','Quote Sent','Won','Lost'];
-const DEFAULT_GAPS = [1,3,7,14,21];
-
-// Helper: compute follow‑up due date
-function due(l:any){
-  if(l.stage!=='Message Sent' || !l.firstMsg) return '';
-  const n = +l.fu||0;
-  const gaps = gapList();
-  return n>=gaps.length ? 'done' : addDays(l.firstMsg, gaps[n]);
-}
-// Gap list respecting settings.gaps
-function gapList(settings:any){
-  const g = settings?.gaps;
-  return g && g.length ? g : DEFAULT_GAPS;
-}
-function fuStatus(l:any,settings:any){
-  const d = due(l);
-  if(!d) return '';
-  if(d==='done') return 'Close or Lost';
-  const todayStr = today();
-  const diff = gap(d, todayStr);
-  if(diff<0) return 'Overdue';
-  if(diff===0) return 'Due today';
-  return 'Upcoming';
-}
-function naStatus(l:any){
-  const stages = ['Replied','Call Booked','Quote Sent'];
-  if(!stages.includes(l.stage)) return '';
-  if(l.nextAction) return fmt(l.nextAction);
-  return 'Set date';
-}
-
-// Queue – same scoring logic as reference (simplified)
-function buildQueue(leads:any,settings:any){
-  const todayStr = today();
-  const arr:any[] = [];
-  Object.values(leads).forEach((l:any)=>{
-    const fStatus = fuStatus(l,settings);
-    const nStatus = naStatus(l);
-    if(fStatus==='Overdue' || fStatus==='Due today'){
-      const score = fStatus==='Overdue'?200+gap(due(l),todayStr):100;
-      arr.push({l, key:'fu', score, tag:fStatus});
-    } else if(fStatus==='Close or Lost'){
-      arr.push({l, key:'close', score:50});
-    }
-    if(nStatus==='Overdue' || nStatus==='Due today' || nStatus==='Set date'){
-      const v = (l.value||0)/1000;
-      let score = 0;
-      if(nStatus==='Overdue') score = 300+v;
-      else if(nStatus==='Due today') score = 150+v;
-      else score = 80;
-      arr.push({l, key:'na', score, tag:nStatus});
-    }
-  });
-  return arr.sort((a,b)=>b.score-a.score);
-}
 
 // Simple SVG gauge (same as reference) – percent 0‑100
 function Gauge({percent}:{percent:number}){
@@ -88,7 +31,7 @@ function Gauge({percent}:{percent:number}){
 const HomeDashboard: React.FC = () => {
   const { leads, settings, saveSettings } = useLeads();
   const [gapsInput, setGapsInput] = useState('');
-  const [queue, setQueue] = useState<any[]>([]);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
 
   useEffect(()=>{
     setQueue(buildQueue(leads, settings));
@@ -197,7 +140,7 @@ const HomeDashboard: React.FC = () => {
             <table>
               <tbody>
                 {queue.slice(0,50).map((q:any)=>{
-                  const l = q.l;
+                  const l = q.lead;
                   const actionBtn = q.key==='fu' ? (
                     <>
                       <button className="btn sm" onClick={()=>alert('Draft placeholder')}>Draft</button>
@@ -212,7 +155,7 @@ const HomeDashboard: React.FC = () => {
                     </>
                   );
                   return (
-                    <tr key={l.id} className="t" style={{'--c':SC[l.stage] as any}}>
+                    <tr key={l.id} className="t" style={{ '--c': SC[l.stage] } as React.CSSProperties}>
                       <td className="ic">{(l.brand||'?').charAt(0).toUpperCase()}</td>
                       <td><b>{l.brand}</b> {q.tag && <span className="tag {q.tag==='Overdue'||q.tag==='Due today'?'bad':'warn'}">{q.tag}</span>}</td>
                       <td>{actionBtn}</td>

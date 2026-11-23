@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_FIREBASE_MESSAGING_SENDER_ID: string;
   readonly VITE_FIREBASE_APP_ID: string;
   readonly VITE_ALLOWED_EMAIL: string;
+  readonly VITE_BYPASS_AUTH: string;
   readonly VITE_ENABLE_AI_DRAFTS: string;
   readonly VITE_ENABLE_GMAIL_API: string;
 }

@@ -1,7 +1,6 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { auth, db } from './firebase/init';
-import { collection, doc, getDoc, setDoc, onSnapshot, query } from 'firebase/firestore';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import NotAllowed from './components/NotAllowed';
@@ -14,6 +13,7 @@ import PipelineBoard from './pages/PipelineBoard';
 import FindLeads from './pages/FindLeads';
 import Reports from './pages/Reports';
 import Templates from './pages/Templates';
+import { LeadsProvider } from './data/firestore';
 
 export const UserContext = createContext<null | { uid: string; email: string }>(null);
 
@@ -26,8 +26,15 @@ const App: React.FC = () => {
   const [user, setUser] = useState<null | { uid: string; email: string }>(null);
   const [allowed, setAllowed] = useState<boolean>(false);
   const allowedEmail = import.meta.env.VITE_ALLOWED_EMAIL?.trim() ?? '';
+  const bypassAuth = import.meta.env.DEV && import.meta.env.VITE_BYPASS_AUTH === 'true';
 
   useEffect(() => {
+    if (bypassAuth) {
+      setUser({ uid: 'test-user', email: allowedEmail || 'test@local.dev' });
+      setAllowed(true);
+      return undefined;
+    }
+
     const unsub = onAuthStateChanged(auth, (u) => {
       if (u && u.email) {
         setUser({ uid: u.uid, email: u.email });
@@ -68,9 +75,13 @@ const App: React.FC = () => {
 
   return (
     <UserContext.Provider value={user}>
-      <div className="app">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        <main className="main">
+      <LeadsProvider uid={bypassAuth ? '' : user.uid}>
+        {bypassAuth && (
+          <div className="auth-bypass-banner" role="status">AUTH BYPASS ON - TEST DATA ONLY</div>
+        )}
+        <div className="app">
+          <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          <main className="main">
           <Header onSignOut={handleSignOut} />
           {activeTab === 'home' && <HomeDashboard />}
           {activeTab === 'leads' && <Leads />}
@@ -78,8 +89,9 @@ const App: React.FC = () => {
           {activeTab === 'find' && <FindLeads />}
           {activeTab === 'num' && <Reports />}
           {activeTab === 'tpl' && <Templates />}
-        </main>
-      </div>
+          </main>
+        </div>
+      </LeadsProvider>
     </UserContext.Provider>
   );
 };

@@ -46,7 +46,7 @@ function fkHtml(t: string) {
 }
 
 const FindLeads: React.FC = () => {
-  const { leads, saveLead, addTestLead } = useLeads(); // saveLead will be used for new leads
+  const { leads, saveLead } = useLeads();
   const [keyword, setKeyword] = useState('');
   const [category, setCategory] = useState('Fashion & Accessories');
   const [leadType, setLeadType] = useState('Running ads'); // default card is Ads

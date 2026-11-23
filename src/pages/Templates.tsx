@@ -1,19 +1,9 @@
-import { useContext, useState, useEffect } from 'react';
-import { UserContext } from '../App';
+import { useState, useEffect } from 'react';
 import { useLeads } from '../data/firestore';
-import { iso, today } from '../utils/date';
-import { inr } from '../utils/format';
+import { Settings } from '../models/Settings';
+import { DEFAULT_TEMPLATES } from '../lib/templates';
 
-// Default templates (same as reference TPLD)
-const DEFAULT_TPL = [
-  "{hi} I was looking at {brand} and noticed {obs}. I help online brands fix issues like this so more visitors check out. Could I send you a free 10-point audit of your store?",
-  "{hi} just checking you saw my last message about {brand}. Happy to share what I found, no strings attached.",
-  "{hi} I put together a free 10-point audit for {brand}, starting with {obs}. Want me to send it over?",
-  "{hi} here is a live store in your space that we improved. I can show you what changed and what it did for their orders.",
-  "{hi} one quick tip for {brand}: fast pages and a simple checkout lift orders more than most design changes. Glad to point out where yours can improve.",
-  "{hi} I will stop pinging you here. If store improvements come up later, I am a message away. Wishing {brand} a great season."
-];
-
+const DEFAULT_TPL = DEFAULT_TEMPLATES;
 const Templates: React.FC = () => {
   const { settings, saveSettings } = useLeads();
   const [templates, setTemplates] = useState<string[]>(DEFAULT_TPL);
@@ -33,7 +23,7 @@ const Templates: React.FC = () => {
 
   const reset = () => {
     setTemplates(DEFAULT_TPL);
-    saveSettings({ ...(settings || {}), tpl: null } as any);
+    saveSettings({ ...(settings || {}), tpl: null } as Settings);
   };
 
   return (

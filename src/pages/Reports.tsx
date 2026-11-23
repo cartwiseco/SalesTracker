@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLeads } from '../data/firestore';
-import { iso, today, gap } from '../utils/date';
-import { inr } from '../utils/format';
+import { iso, inr } from '../lib/dates';
 
 // Stage colors (same as reference)
 const SC: Record<string, string> = {

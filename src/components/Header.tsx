@@ -1,19 +1,11 @@
-import React, { useContext, useState } from 'react';
-import { UserContext } from '../App';
-import { useLeads } from '../data/firestore';
+import React, { useState } from 'react';
 
 interface HeaderProps {
   onSignOut: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ onSignOut }) => {
-  const user = useContext(UserContext);
   const [search, setSearch] = useState('');
-  const { addTestLead } = useLeads(); // expose helper for demo
-
-  const handleNewLead = () => {
-    addTestLead();
-  };
 
   return (
     <div className="gh">
@@ -24,7 +16,7 @@ const Header: React.FC<HeaderProps> = ({ onSignOut }) => {
         onChange={(e) => setSearch(e.target.value)}
       />
       <span className="sp" />
-      <button className="btn" onClick={handleNewLead}>New lead</button>
+      <button className="btn">New lead</button>
       <button className="btn" onClick={onSignOut}>Sign out</button>
     </div>
   );
