@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLeads } from '../data/firestore';
-import { iso, inr } from '../lib/dates';
+import { monthBounds, now, inr } from '../lib/dates';
 
 // Stage colors (same as reference)
 const SC: Record<string, string> = {
@@ -63,9 +63,10 @@ const Reports: React.FC = () => {
   const winRate = totalLeads ? Math.round((wonLeads/totalLeads)*100) : 0;
 
   // Revenue stats (same as Home)
-  const now = new Date();
-  const monthStart = iso(new Date(now.getFullYear(), now.getMonth(), 1));
-  const monthEnd = iso(new Date(now.getFullYear(), now.getMonth()+1, 1));
+  const currentDate = now();
+  const month = monthBounds(currentDate);
+  const monthStart = month.start;
+  const monthEnd = month.end;
   const wonArray = Object.values(leads).filter(l=>l.stage==='Won');
   const monthRevenue = wonArray.filter(l=> l.wonDate && l.wonDate>=monthStart && l.wonDate<monthEnd).reduce((s,l:any)=>s+(l.value||0),0);
 

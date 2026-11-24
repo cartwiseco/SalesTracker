@@ -1,3 +1,16 @@
+let fixedClock: Date | null = null;
+
+export const setFixedClock = (fixedDate: string | null): void => {
+  if (!fixedDate) {
+    fixedClock = null;
+    return;
+  }
+  const [year, month, day] = fixedDate.split('-').map(Number);
+  fixedClock = new Date(year, month - 1, day, 12, 0, 0, 0);
+};
+
+export const now = (): Date => fixedClock ? new Date(fixedClock) : new Date();
+
 export const iso = (date: Date): string => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -5,11 +18,17 @@ export const iso = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
-export const today = (): string => iso(new Date());
+export const today = (): string => iso(now());
 
 const parseIso = (value: string): Date => {
   const [year, month, day] = value.split('-').map(Number);
   return new Date(year, month - 1, day);
+};
+
+export const monthBounds = (date: Date): { start: string; end: string } => {
+  const start = iso(new Date(date.getFullYear(), date.getMonth(), 1));
+  const end = iso(new Date(date.getFullYear(), date.getMonth() + 1, 1));
+  return { start, end };
 };
 
 export const addDays = (value: string, days: number): string => {

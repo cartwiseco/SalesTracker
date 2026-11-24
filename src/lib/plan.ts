@@ -42,7 +42,7 @@ export const planRows = (
 ) => {
   const counts = todayCounts(leads, fixedToday);
   const stillDue = buildQueue(leads, settings, fixedToday).filter((item) => item.key === 'fu').length;
-  const perDay = settings?.perDay || 15;
+  const perDay = settings?.perDay ?? 15;
 
   return {
     counts,
@@ -64,7 +64,7 @@ export const nextAction = (
   fixedToday: string,
 ): NextAction => {
   const plan = planRows(leads, settings, fixedToday);
-  const perDay = settings?.perDay || 15;
+  const perDay = settings?.perDay ?? 15;
 
   if (plan.stillDue > 0) {
     return { label: `Clear ${plan.stillDue} follow-ups`, action: 'review' };

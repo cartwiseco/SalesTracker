@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const fixture = readFileSync(resolve(process.cwd(), 'test-leads.csv'), 'utf8');
+const fixture = readFileSync(resolve(process.cwd(), 'docs/test-leads.csv'), 'utf8');
 
 describe('CSV parser and import', () => {
   it('loads test-leads.csv and is available as a pure module', async () => {

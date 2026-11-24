@@ -5,6 +5,10 @@ import { buildQueue, startReviewList } from '../src/lib/queue';
 import { checks } from '../src/lib/checks';
 import { DEFAULT_TEMPLATES, fillTemplate } from '../src/lib/templates';
 import { Lead } from '../src/models/Lead';
+import { planRows, nextAction, todayCounts } from '../src/lib/plan';
+import { previewImport } from '../src/lib/csv';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const makeLead = (overrides: Partial<Lead>): Lead => ({
   id: 'test', n: 1, stage: 'New Lead', added: '2026-11-23', fu: 0,
@@ -95,6 +99,45 @@ describe('queue and template filling', () => {
 
   it('fills fallback hi and obs text', () => {
     expect(fillTemplate('{hi} {brand}: {obs}', makeLead({ brand:'', contact:'', observation:'' }))).toBe('Hi, your brand: a few things on the store that could be improved');
+  });
+});
+
+describe('plan panel', () => {
+  it('uses 2026-11-23 fixture counts and next action', () => {
+    vi.setSystemTime(new Date(2026, 10, 23, 12));
+    const csv = readFileSync(resolve(process.cwd(), 'docs/test-leads.csv'), 'utf8');
+    const fixture = previewImport(csv, [], '2026-11-23').readyLeads;
+    const leads = Object.fromEntries(fixture.map((lead) => [lead.id, lead])) as Record<string, Lead>;
+    const settings = { goal:300000, win:30, perDay:15, days:5, gaps:[1,3,7,14,21] };
+    const counts = todayCounts(leads, '2026-11-23');
+    const plan = planRows(leads, settings, '2026-11-23');
+
+    expect(counts).toEqual({ followUpsSent:0, firstMessagesSent:0, found:0 });
+    expect(plan.followUp.done).toBe(0);
+    expect(plan.followUp.total).toBe(5);
+    expect(plan.find.done).toBe(0);
+    expect(plan.find.total).toBe(15);
+    expect(plan.firstMessage.done).toBe(0);
+    expect(plan.firstMessage.total).toBe(15);
+    expect(nextAction(leads, settings, '2026-11-23')).toEqual({ label:'Clear 5 follow-ups', action:'review' });
+  });
+
+  it('rounds percentages and treats a zero total as 100%', () => {
+    vi.setSystemTime(new Date(2026, 10, 23, 12));
+    const leads: Record<string, Lead> = {};
+    const settings = { goal:300000, win:30, perDay:0, days:5 };
+    const plan = planRows(leads, settings, '2026-11-23');
+    expect(plan.find.percent).toBe(100);
+    expect(plan.firstMessage.percent).toBe(100);
+    expect(nextAction(leads, settings, '2026-11-23')).toEqual({ label:'All done for today', action:null });
+  });
+
+  it('uses done style at 100 percent', () => {
+    vi.setSystemTime(new Date(2026, 10, 23, 12));
+    const lead = makeLead({ log:[{t:'2026-11-23',x:'Found via lead finder'}] });
+    const plan = planRows({ test:lead }, { goal:300000, win:30, perDay:1, days:5 }, '2026-11-23');
+    expect(plan.find.percent).toBe(100);
+    expect(plan.find.doneStyle).toBe(true);
   });
 });
 

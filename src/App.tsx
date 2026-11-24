@@ -14,6 +14,7 @@ import FindLeads from './pages/FindLeads';
 import Reports from './pages/Reports';
 import Templates from './pages/Templates';
 import { LeadsProvider } from './data/firestore';
+import { setFixedClock } from './lib/dates';
 
 export const UserContext = createContext<null | { uid: string; email: string }>(null);
 
@@ -29,6 +30,18 @@ const App: React.FC = () => {
   const bypassAuth = import.meta.env.DEV && import.meta.env.VITE_BYPASS_AUTH === 'true';
 
   useEffect(() => {
+    const onOpenLead = (event: Event) => {
+      const customEvent = event as CustomEvent<string>;
+      if (customEvent.detail) {
+        setSelectedLeadId(customEvent.detail);
+        setActiveTab('leads');
+      }
+    };
+    window.addEventListener('cartwise-open-lead', onOpenLead);
+    return () => window.removeEventListener('cartwise-open-lead', onOpenLead);
+  }, []);
+
+  useEffect(() => {
     const onNavigate = (event: Event) => {
       const customEvent = event as CustomEvent<string>;
       if (customEvent.detail) setActiveTab(customEvent.detail);
@@ -36,6 +49,13 @@ const App: React.FC = () => {
     window.addEventListener('cartwise-go', onNavigate);
     return () => window.removeEventListener('cartwise-go', onNavigate);
   }, []);
+
+  useEffect(() => {
+    if (bypassAuth) {
+      setFixedClock('2026-11-23');
+      return () => setFixedClock(null);
+    }
+  }, [bypassAuth]);
 
   useEffect(() => {
     if (missingFirebaseConfig.length > 0) return undefined;
@@ -107,9 +127,9 @@ const App: React.FC = () => {
 
   return (
     <UserContext.Provider value={user}>
-      <LeadsProvider uid={bypassAuth ? '' : user.uid}>
+      <LeadsProvider uid={bypassAuth ? '' : user.uid} testMode={bypassAuth}>
         {bypassAuth && (
-          <div className="auth-bypass-banner" role="status">AUTH BYPASS ON - TEST DATA ONLY</div>
+          <div className="auth-bypass-banner" role="status">TEST MODE</div>
         )}
         <div className="app">
           <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useLeads } from '../data/firestore';
-import { iso, today, gap, addDays, inr } from '../lib/dates';
+import { today, now, monthBounds, gap, addDays, inr } from '../lib/dates';
 import { checks } from '../lib/checks';
 import { buildQueue, QueueItem, startReviewList } from '../lib/queue';
 import { due, fuStatus, gapList } from '../lib/followUps';
 import { fillTemplate, DEFAULT_TEMPLATES } from '../lib/templates';
 import { planRows, nextAction } from '../lib/plan';
+import { openLead } from '../lib/navigation';
 
 // Stage colors (same as reference)
 const SC: Record<string, string> = {
@@ -43,9 +44,10 @@ const HomeDashboard: React.FC = () => {
   },[leads,settings]);
 
   // ----- Stats calculations (mirrors reference.stats()) -----
-  const now = new Date();
-  const monthStart = iso(new Date(now.getFullYear(), now.getMonth(), 1));
-  const monthEnd = iso(new Date(now.getFullYear(), now.getMonth()+1, 1));
+  const currentDate = now();
+  const month = monthBounds(currentDate);
+  const monthStart = month.start;
+  const monthEnd = month.end;
   const leadArray = Object.values(leads);
   const won = leadArray.filter(l=>l.stage==='Won');
   const sum = (arr:any[])=>arr.reduce((s,l:any)=>s+ (l.value||0),0);
@@ -73,7 +75,7 @@ const HomeDashboard: React.FC = () => {
 
   // Update document title with queue count
   useEffect(()=>{
-    const count = queue.filter(item => item.key === 'fu').length;
+    const count = queue.length;
     document.title = (count?`(${count}) `:'')+'Cart Wise Co: Lead Tracker';
   },[queue]);
 
@@ -158,7 +160,7 @@ const HomeDashboard: React.FC = () => {
   };
 
   const reviewLead = reviewIds.length ? leads[reviewIds[reviewIndex]] : null;
-  const needsFixing = leadArray.filter(l => checks(l).length).slice(0, 5);
+  const needsFixing = leadArray.filter(l => checks(l, leads).length).slice(0, 5);
 
   const copyDraft = async () => {
     try { await navigator.clipboard.writeText(draftText); } catch { /* fallback: leave text selected by the browser */ }
@@ -204,7 +206,7 @@ const HomeDashboard: React.FC = () => {
   return (
     <div id="view">
       <h1>Home</h1>
-      <p className="sub">{now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+      <p className="sub">{currentDate.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
 
       <div className="card plan" style={{marginBottom:'16px'}}>
         <h2>Your plan for today</h2>
@@ -246,7 +248,7 @@ const HomeDashboard: React.FC = () => {
           <h2>Tasks for today ({queue.length})</h2>
           {queue.length === 0 ? <div className="empty">Nothing is due. Add leads or send first messages.</div> : queue.slice(0,50).map(q => {
             const l = q.lead;
-            const action = q.key==='fu' ? <><button className="btn sm" onClick={()=>openDraft(l.id,[l.id])}>Draft</button><button className="btn sm pri" onClick={()=>sentLead(l.id)}>Sent</button></> : q.key==='close' ? <button className="btn sm">Close lead</button> : <><button className="btn sm" onClick={()=>void saveLead({...l,nextAction:addDays(todayString,2)})}>Push 2 days</button><button className="btn sm pri" onClick={()=>openDraft(l.id,[l.id])}>Open</button></>;
+            const action = q.key==='fu' ? <><button className="btn sm" onClick={()=>openDraft(l.id,[l.id])}>Draft</button><button className="btn sm pri" onClick={()=>sentLead(l.id)}>Sent</button></> : q.key==='close' ? <button className="btn sm" onClick={()=>openLead(l.id)}>Close lead</button> : <><button className="btn sm" onClick={()=>void saveLead({...l,nextAction:addDays(todayString,2)})}>Push 2 days</button><button className="btn sm pri" onClick={()=>openLead(l.id)}>Open</button></>;
             return <div className="t" style={{'--c':SC[l.stage]} as React.CSSProperties} key={l.id}><div className="ic">{(l.brand||'?').charAt(0).toUpperCase()}</div><div className="x"><b>{l.brand}</b>{q.tag && <span className={`tag ${q.tag==='Overdue'||q.tag==='Set date'?'bad':q.tag==='Due today'?'warn':'ok'}`}> {q.tag}</span>}<span /></div><div className="a">{action}</div></div>;
           })}
         </div>
@@ -258,7 +260,7 @@ const HomeDashboard: React.FC = () => {
         </div>
       </div>
 
-      {needsFixing.length > 0 && <div className="card t-red"><h2>Needs fixing ({needsFixing.length})</h2>{needsFixing.map(l => <div className="t" key={l.id}><div className="x"><b>{l.brand}</b><span>{checks(l).join(', ')}</span></div><button className="btn sm">Fix</button></div>)}</div>}
+      {needsFixing.length > 0 && <div className="card t-red"><h2>Needs fixing ({needsFixing.length})</h2>{needsFixing.map(l => <div className="t" key={l.id}><div className="x"><b>{l.brand}</b><span>{checks(l, leads).join(', ')}</span></div><button className="btn sm" onClick={()=>openLead(l.id)}>Fix</button></div>)}</div>}
 
       {reviewLead && (
         <div id="modal" style={{display:'block'}}>
