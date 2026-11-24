@@ -19,8 +19,10 @@ export const buildQueue = (
   const todayString = fixedToday || today();
 
   Object.values(leads).forEach((lead) => {
-    const followUpStatus = fuStatus(lead, settings, fixedToday);
-    if (followUpStatus === 'Overdue' || followUpStatus === 'Due today') {
+    const followUpStatus = fuStatus(lead, settings, todayString);
+    const alreadySentFollowUpToday = lead.lastContacted === todayString
+      && Boolean(lead.log?.some((entry) => entry.t === todayString && /^Follow-up \d+ sent$/.test(entry.x)));
+    if (!alreadySentFollowUpToday && (followUpStatus === 'Overdue' || followUpStatus === 'Due today')) {
       const dueDate = due(lead, settings);
       items.push({
         lead,
@@ -32,7 +34,7 @@ export const buildQueue = (
       items.push({ lead, key: 'close', score: 50 });
     }
 
-    const nextActionStatus = naStatus(lead, fixedToday);
+    const nextActionStatus = naStatus(lead, todayString);
     if (nextActionStatus === 'Overdue' || nextActionStatus === 'Due today' || nextActionStatus === 'Set date') {
       const valueThousands = (lead.value || 0) / 1000;
       const score = nextActionStatus === 'Overdue'

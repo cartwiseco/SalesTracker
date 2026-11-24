@@ -9,6 +9,7 @@ import { planRows, nextAction, todayCounts } from '../src/lib/plan';
 import { previewImport } from '../src/lib/csv';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { foundLeadActivity, gmailComposeUrl, instagramUrl, sentLeadUpdate, whatsappUrl } from '../src/lib/outreach';
 
 const makeLead = (overrides: Partial<Lead>): Lead => ({
   id: 'test', n: 1, stage: 'New Lead', added: '2026-11-23', fu: 0,
@@ -138,6 +139,87 @@ describe('plan panel', () => {
     const plan = planRows({ test:lead }, { goal:300000, win:30, perDay:1, days:5 }, '2026-11-23');
     expect(plan.find.percent).toBe(100);
     expect(plan.find.doneStyle).toBe(true);
+  });
+
+  it('completes the fixture day flow from follow-ups to found leads to first messages', () => {
+    vi.setSystemTime(new Date(2026, 10, 23, 12));
+    const csv = readFileSync(resolve(process.cwd(), 'docs/test-leads.csv'), 'utf8');
+    const imported = previewImport(csv, [], '2026-11-23').readyLeads;
+    const leads = Object.fromEntries(imported.map((lead) => [lead.id, lead])) as Record<string, Lead>;
+    const settings = { goal:300000, win:30, perDay:2, days:5, gaps:[1,3,7,14,21] };
+
+    const dueIds = startReviewList(leads, settings, '2026-11-23').slice(0, 5);
+    dueIds.forEach((id) => { leads[id] = sentLeadUpdate(leads[id], settings, '2026-11-23'); });
+    let plan = planRows(leads, settings, '2026-11-23');
+    expect(plan.followUp.done).toBe(5);
+    expect(plan.followUp.total).toBe(5);
+    expect(buildQueue(leads, settings, '2026-11-23').filter((item) => item.key === 'fu')).toHaveLength(0);
+    expect(nextAction(leads, settings, '2026-11-23')).toEqual({ label:'Find leads', action:'find' });
+
+    const foundLeads = [
+      makeLead({ id:'found-1', n:20, brand:'Test Found One', added:'2026-11-23', log:[foundLeadActivity('2026-11-23')] }),
+      makeLead({ id:'found-2', n:21, brand:'Test Found Two', added:'2026-11-23', log:[foundLeadActivity('2026-11-23')] }),
+    ];
+    foundLeads.forEach((lead) => { leads[lead.id] = lead; });
+    expect(todayCounts(leads, '2026-11-23').found).toBe(2);
+    expect(nextAction(leads, settings, '2026-11-23')).toEqual({ label:'Send first messages', action:'review' });
+
+    foundLeads.forEach((lead) => { leads[lead.id] = sentLeadUpdate(leads[lead.id], settings, '2026-11-23'); });
+    plan = planRows(leads, settings, '2026-11-23');
+    expect(plan.firstMessage.done).toBe(2);
+    expect(plan.firstMessage.total).toBe(2);
+    expect(nextAction(leads, settings, '2026-11-23')).toEqual({ label:'All done for today', action:null });
+  });
+});
+
+describe('outreach send and channel helpers', () => {
+  it('logs first messages and follow-ups, caps fu, and updates lastContacted', () => {
+    const settings = { goal:300000, win:30, perDay:2, days:5, gaps:[1,3] };
+    const first = sentLeadUpdate(makeLead({ id:'new', brand:'New Brand' }), settings, '2026-11-23');
+    expect(first.stage).toBe('Message Sent');
+    expect(first.firstMsg).toBe('2026-11-23');
+    expect(first.fu).toBe(0);
+    expect(first.lastContacted).toBe('2026-11-23');
+    expect(first.log?.at(-1)).toEqual({ t:'2026-11-23', x:'First message sent' });
+
+    const followUp = sentLeadUpdate(makeLead({ id:'existing', stage:'Message Sent', firstMsg:'2026-11-20', fu:2 }), settings, '2026-11-23');
+    expect(followUp.fu).toBe(2);
+    expect(followUp.lastContacted).toBe('2026-11-23');
+    expect(followUp.log?.at(-1)).toEqual({ t:'2026-11-23', x:'Follow-up 2 sent' });
+  });
+
+  it('builds channel URLs with correct numbers, encoding, and Instagram handles', () => {
+    expect(whatsappUrl('9876500001', 'Hello there')).toBe('https://wa.me/919876500001?text=Hello%20there');
+
+    const gmailUrl = new URL(gmailComposeUrl('asha@example.com', 'Élan', 'नमस्ते, how are you?'));
+    expect(gmailUrl.origin + gmailUrl.pathname).toBe('https://mail.google.com/mail/');
+    expect(gmailUrl.searchParams.get('to')).toBe('asha@example.com');
+    expect(gmailUrl.searchParams.get('su')).toBe('Quick idea for Élan');
+    expect(gmailUrl.searchParams.get('body')).toBe('नमस्ते, how are you?');
+
+    expect(instagramUrl('', '@mybrand')).toBe('https://instagram.com/mybrand');
+    expect(instagramUrl('', 'mybrand')).toBe('https://instagram.com/mybrand');
+  });
+
+  it('dates the Find Leads activity from the shared clock value', () => {
+    vi.setSystemTime(new Date(2026, 10, 23, 12));
+    expect(foundLeadActivity(today())).toEqual({ t:'2026-11-23', x:'Found via lead finder' });
+  });
+
+  it('keeps Start Review follow-up order, then new lead order, capped at 50', () => {
+    vi.setSystemTime(new Date(2026, 10, 23, 12));
+    const source = readFileSync(resolve(process.cwd(), 'docs/test-leads.csv'), 'utf8');
+    const fixture = previewImport(source, [], '2026-11-23').readyLeads;
+    const leads = Object.fromEntries(fixture.map((lead) => [lead.id, lead])) as Record<string, Lead>;
+    expect(startReviewList(leads, null, '2026-11-23').map((id) => leads[id].brand)).toEqual([
+      'Delta Decor','Gamma Gems','Lotus Linen','Beta Kids','Echo Beauty','Alpha Looms','Mango & Co, "Fresh" Fruits',
+    ]);
+
+    const manyNewLeads = Object.fromEntries(Array.from({ length: 60 }, (_, index) => {
+      const lead = makeLead({ id:`new-${index}`, n:index + 1, brand:`New ${index}` });
+      return [lead.id, lead];
+    }));
+    expect(startReviewList(manyNewLeads, null, '2026-11-23')).toHaveLength(50);
   });
 });
 

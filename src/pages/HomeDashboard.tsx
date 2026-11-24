@@ -7,6 +7,7 @@ import { due, fuStatus, gapList } from '../lib/followUps';
 import { fillTemplate, DEFAULT_TEMPLATES } from '../lib/templates';
 import { planRows, nextAction } from '../lib/plan';
 import { openLead } from '../lib/navigation';
+import { gmailComposeUrl, instagramUrl, sentLeadUpdate, whatsappUrl } from '../lib/outreach';
 
 // Stage colors (same as reference)
 const SC: Record<string, string> = {
@@ -112,18 +113,7 @@ const HomeDashboard: React.FC = () => {
   const sentLead = async (leadId: string) => {
     const lead = leads[leadId];
     if (!lead) return;
-    const firstMessage = lead.stage === 'New Lead';
-    const gaps = gapList(settings);
-    const nextFu = firstMessage ? 0 : Math.min(gaps.length, (lead.fu || 0) + 1);
-    const updated = {
-      ...lead,
-      stage: firstMessage ? 'Message Sent' : lead.stage,
-      firstMsg: firstMessage ? todayString : lead.firstMsg,
-      fu: nextFu,
-      lastContacted: todayString,
-      log: [...(lead.log || []), { t: todayString, x: firstMessage ? 'First message sent' : `Follow-up ${nextFu} sent` }],
-    };
-    await saveLead(updated);
+    await saveLead(sentLeadUpdate(lead, settings, todayString));
   };
 
   const doneSend = async () => {
@@ -169,17 +159,14 @@ const HomeDashboard: React.FC = () => {
   const openChannel = () => {
     if (!reviewLead) return;
     const handle = (reviewLead.handle || '').trim();
-    const digits = handle.replace(/\D/g, '');
     if (reviewLead.route === 'WhatsApp') {
-      const phone = digits.length === 10 ? `91${digits}` : digits;
-      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(draftText)}`, '_blank');
+      window.open(whatsappUrl(handle, draftText), '_blank', 'noopener,noreferrer');
     } else if (reviewLead.route === 'Email') {
-      const subject = `Quick idea for ${reviewLead.brand}`;
-      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(handle)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(draftText)}`, '_blank', 'noopener,noreferrer');
+      window.open(gmailComposeUrl(handle, reviewLead.brand, draftText), '_blank', 'noopener,noreferrer');
     } else {
       navigator.clipboard.writeText(draftText).catch(() => undefined);
-      const link = reviewLead.link || (handle ? `https://instagram.com/${handle.replace(/^@/, '')}` : '');
-      if (link) window.open(/^https?:/.test(link) ? link : `https://${link}`, '_blank', 'noopener,noreferrer');
+      const link = instagramUrl(reviewLead.link, handle);
+      if (link) window.open(link, '_blank', 'noopener,noreferrer');
     }
   };
 

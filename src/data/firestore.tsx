@@ -3,8 +3,6 @@ import { collection, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firesto
 import { db } from '../firebase/init';
 import { Lead } from '../models/Lead';
 import { Settings } from '../models/Settings';
-import testLeadsCsv from '../../docs/test-leads.csv?raw';
-import { previewImport } from '../lib/csv';
 import { setFixedClock } from '../lib/dates';
 
 type LeadsContextValue = {
@@ -22,12 +20,19 @@ export const LeadsProvider: React.FC<{ uid: string; testMode?: boolean; children
   const [settings, setSettings] = useState<Settings | null>(null);
 
   useEffect(() => {
-    if (testMode) {
+    if (import.meta.env.DEV && testMode) {
       setFixedClock('2026-11-23');
-      const preview = previewImport(testLeadsCsv, [], '2026-11-23');
-      setLeads(Object.fromEntries(preview.readyLeads.map((lead) => [lead.id, lead])));
-      setSettings({ goal:300000, win:30, perDay:15, days:5, gaps:[1,3,7,14,21] });
-      return () => setFixedClock(null);
+      let active = true;
+      void import('../lib/testData').then(({ loadTestData }) => {
+        if (!active) return;
+        const testData = loadTestData();
+        setLeads(testData.leads);
+        setSettings(testData.settings);
+      });
+      return () => {
+        active = false;
+        setFixedClock(null);
+      };
     }
 
     if (!uid || !db) return undefined;
@@ -51,7 +56,7 @@ export const LeadsProvider: React.FC<{ uid: string; testMode?: boolean; children
   }, [uid, testMode]);
 
   const saveLead = useCallback(async (lead: Lead) => {
-    if (testMode) {
+    if (import.meta.env.DEV && testMode) {
       setLeads((current) => ({ ...current, [lead.id]: lead }));
       return;
     }
@@ -61,7 +66,7 @@ export const LeadsProvider: React.FC<{ uid: string; testMode?: boolean; children
   }, [uid, testMode]);
 
   const deleteLead = useCallback(async (leadId: string) => {
-    if (testMode) {
+    if (import.meta.env.DEV && testMode) {
       setLeads((current) => {
         const next = { ...current };
         delete next[leadId];
@@ -75,7 +80,7 @@ export const LeadsProvider: React.FC<{ uid: string; testMode?: boolean; children
   }, [uid, testMode]);
 
   const saveSettings = useCallback(async (newSettings: Settings) => {
-    if (testMode) {
+    if (import.meta.env.DEV && testMode) {
       setSettings(newSettings);
       return;
     }

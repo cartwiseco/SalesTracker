@@ -121,26 +121,27 @@ Reference function names are given so the agent can read the exact code.
 - Design tokens: bg `#f6f5fb`, ink `#1f1d3d`, muted `#625f82`, line `#e4e2f0`, soft `#f1f0f8`, brand `#3d3aa8` (hover `#2b2980`), gold `#f0a81c`, good `#1f8a54`, bad `#c4283f`. Card tints (bg / border): blue `#e2f0fa`/`#c5def2`, amber `#fdf1d1`/`#f3dea0`, green `#e1f3e8`/`#bfe3cd`, red `#fbe5ea`/`#f3c3cd`, purple `#ecebfb`/`#d3d1f3`, teal `#def3f1`/`#b9e3df`, grey `#efeef5`/`#dddbea`.
 - **Deferred add-ons** (prompts are in `docs/PROMPTS.md`): AI drafts through a Netlify Function calling the Claude API (tones: Short and casual English, Professional English, Hinglish; template fallback); real Gmail drafts through the Gmail API with Google Identity Services. Both need keys and setup the owner does not want yet.
 
-## 8. Current status (23 Nov 2026)
 
-**Phase 1 foundation verified:**
-- Firebase Google sign-in and the allowed-email UI check exist.
-- Development-only auth bypass is restricted to `import.meta.env.DEV`, shows a visible banner, and bypass users receive no Firestore uid/listener/write access.
-- Firestore rules deny by default outside `/users/{uid}/...` and require matching uid plus the email placeholder `YOUR_EMAIL@gmail.com`.
-- The old Test Brand sample-lead factory and Header button action were removed. Existing remote data was not listed or deleted because the bypass cannot access real Firestore and no explicit deletion approval was given.
-- One `LeadsProvider` now owns the leads/settings snapshots and exposes cached state plus save/delete helpers through `useLeads()`.
-- Pure date, formatting, follow-up, queue, data-check, and template-filling modules live under `src/lib`.
-- `npx tsc --noEmit` passes with zero errors and `npm run build` passes.
-- `docs/PROJECT_KT.md` and `docs/PROMPTS.md` are not present; the KT is available at the workspace root as `PROJECT_KT.md`.
-- `reference/cart-wise-lead-tracker-v4.html` is not present, so reference-only data checks and exact screen parity could not be independently copied or verified.
+## 8. Current status (24 Nov 2026)
 
-**Still not built or broken:**
-- Leads page and Pipeline board are placeholders.
-- Lead modal, filtering, sorting, saved views, CSV import/export, Start review, drafts, and real task actions remain incomplete.
-- Backup and Restore are not wired.
-- The Firestore placeholder email must be replaced and rules deployed.
-- The Netlify address must be added to Firebase authorized domains; README needs finishing.
-- Skip for now: code splitting, automated tests, and drag-and-drop libraries.
+**Verified and implemented:**
+- Firebase Google sign-in and allowed-email UI check are present. Firestore rules restrict access by uid and configured email placeholder; replace `YOUR_EMAIL@gmail.com` and deploy rules before production use.
+- Development-only `VITE_BYPASS_AUTH=true` activates a visible TEST MODE banner, loads `docs/test-leads.csv` into an in-memory provider, fixes the clock to 2026-11-23, and opens no Firestore listeners or writes.
+- `LeadsProvider` owns the shared Firestore listeners and exposes cached leads/settings through `useLeads()`.
+- Shared local-date clock, follow-up, queue, plan-row, send transition, channel URL, CSV, template, and data-check helpers are under `src/lib`.
+- Home plan counts use dated activity entries. Follow-ups sent today leave that day's due queue; the title count includes the full queue (follow-ups, close tasks, and next actions).
+- Home Next actions, Start Review ordering, draft editing/copy/channel links, and send logging are implemented. Find Leads logs `Found via lead finder` using the shared clock.
+- `npx tsc --noEmit` passes; `npm test` passes with 25 tests; `npm run build` passes.
+- The exact reference files are in `reference/`; the handover document and fixture are in `docs/`.
+
+**Still missing or incomplete:**
+- Leads page and Pipeline board are placeholders; the shared open-lead event has no completed lead modal to receive it.
+- Leads search, sorting, filters, saved views, activity editing, and CSV import/export UI are incomplete.
+- Close lead only opens the lead; no completed modal exists yet to choose a lost reason and save the stage.
+- Backup and Restore are not implemented.
+- Reports need further parity/accuracy review; template writes still need debounce/blur behavior.
+- Vercel project variables and Firebase authorized domains/rules must be configured for deployment.
+- `docs/PROMPTS.md` is not present. Skip code splitting and drag-and-drop libraries; native HTML5 is intended for Pipeline.
 
 ## 9. How to work with the owner
 

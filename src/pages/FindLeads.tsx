@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLeads } from '../data/firestore';
 import { today } from '../lib/dates';
+import { foundLeadActivity } from '../lib/outreach';
 
 // Option lists (same as reference)
 export const OPT = {
@@ -114,7 +115,7 @@ const FindLeads: React.FC = () => {
       dealType: 'One-time project',
       lostReason: '',
       notes: '',
-      log: [{ t: today(), x: 'Found via lead finder' }]
+      log: [foundLeadActivity(today())]
     } as any;
     await saveLead(newLead);
     setMessage(`Saved ${brand}. Add its contact details from the Leads list.`);
