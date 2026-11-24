@@ -7,6 +7,7 @@ import { applySavedView, filterLeads, LeadListState, sortLeads } from '../lib/le
 import { fmt, inr, today } from '../lib/dates';
 import { fuStatus, naStatus } from '../lib/followUps';
 import LeadRecordModal, { EMPTY_LEAD } from '../components/LeadRecordModal';
+import { previewImport, ImportPreview } from '../lib/csv';
 
 const STAGE_COLORS: Record<string, string> = {
   'New Lead':'#6b7a90', 'Message Sent':'#0176d3', Replied:'#06a59a',
@@ -18,12 +19,16 @@ const FILTERS = [
 ] as const;
 const emptyState = (): LeadListState => ({ stage:'', filters:{}, sort:'n', direction:1 });
 
-const Leads: React.FC<{ search?: string; selectedLeadId?: string | null; onCloseLead?: () => void }> = ({ search = '', selectedLeadId = null, onCloseLead }) => {
+const Leads: React.FC<{ search?: string; selectedLeadId?: string | null; onCloseLead?: () => void; importRequest?: number }> = ({ search = '', selectedLeadId = null, onCloseLead, importRequest = 0 }) => {
   const { leads, settings, saveSettings, saveLead, deleteLead } = useLeads();
   const [listState, setListState] = useState<LeadListState>(emptyState);
   const [viewName, setViewName] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [record, setRecord] = useState<Lead | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [importPreview, setImportPreview] = useState<ImportPreview>({ ready:0, skipped:0, readyLeads:[], recognisedColumns:[] });
+  const [importError, setImportError] = useState('');
 
   useEffect(() => {
     if (selectedLeadId === null) {
@@ -34,6 +39,40 @@ const Leads: React.FC<{ search?: string; selectedLeadId?: string | null; onClose
       setRecord(leads[selectedLeadId] || null);
     }
   }, [selectedLeadId, leads]);
+
+  useEffect(() => {
+    if (importRequest > 0) {
+      setImportText('');
+      setImportPreview({ ready:0, skipped:0, readyLeads:[], recognisedColumns:[] });
+      setImportError('');
+      setImportOpen(true);
+    }
+  }, [importRequest]);
+
+  const previewText = (text:string) => {
+    setImportText(text);
+    setImportError('');
+    setImportPreview(previewImport(text, allLeads, today()));
+  };
+
+  const readImportFile = (file?:File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => previewText(String(reader.result || ''));
+    reader.onerror = () => setImportError('Could not read the selected file.');
+    reader.readAsText(file);
+  };
+
+  const importReadyLeads = async () => {
+    try {
+      await Promise.all(importPreview.readyLeads.map(saveLead));
+      setImportOpen(false);
+      setListState(current => ({ ...current, stage:'', filters:{} }));
+      setShowAll(true);
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : 'Import failed.');
+    }
+  };
 
   const allLeads = Object.values(leads);
   const filtered = filterLeads(leads, search, listState);
@@ -140,6 +179,21 @@ const Leads: React.FC<{ search?: string; selectedLeadId?: string | null; onClose
         </div>
       )}
       {ordered.length > 100 && !showAll && <p><button className="btn" onClick={() => setShowAll(true)}>Show all {ordered.length}</button></p>}
+      {importOpen && <div id="modal" className="lead-record-modal" style={{display:'block'}} role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setImportOpen(false); }}>
+        <section className="rec" role="dialog" aria-modal="true" aria-labelledby="import-title">
+          <header className="rh"><div><small>Import</small><h1 id="import-title">Import leads</h1></div><span className="sp"/><button className="btn" onClick={() => setImportOpen(false)} aria-label="Close import">×</button></header>
+          <div className="rb">
+            <p className="sub">Choose a CSV file, or paste CSV or tab-separated rows. The first row must contain column headers.</p>
+            <input type="file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" onChange={event => readImportFile(event.target.files?.[0])} />
+            <label htmlFor="import-paste">Or paste rows here</label>
+            <textarea id="import-paste" className="draft" rows={8} value={importText} onChange={event => previewText(event.target.value)} placeholder="Paste header and lead rows" />
+            <p className="sub import-summary">{importPreview.ready} ready, {importPreview.skipped} skipped</p>
+            {importPreview.recognisedColumns.length > 0 && <p className="sub">Recognised columns: {importPreview.recognisedColumns.join(', ')}</p>}
+            {importError && <div className="errbox" role="alert">{importError}</div>}
+          </div>
+          <footer className="rf"><button className="btn" onClick={() => setImportOpen(false)}>Cancel</button><button className="btn pri" disabled={importPreview.ready === 0} onClick={() => void importReadyLeads()}>Import</button></footer>
+        </section>
+      </div>}
       {record && selectedLeadId !== null && <LeadRecordModal
         key={record.id}
         lead={record}

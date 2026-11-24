@@ -54,4 +54,19 @@ describe('CSV parser and import', () => {
     expect(quotes).toBe(85000);
     expect(Math.round(quotes * 0.3)).toBe(25500);
   });
+
+  it('round-trips fixture leads through export and import without losing quoted names or dates', async () => {
+    const csv = await import('../src/lib/csv');
+    const imported = csv.previewImport(fixture, [], '2026-11-23').readyLeads;
+    const exportedText = csv.exportCsv(imported);
+    const roundTrip = csv.previewImport(exportedText, [], '2026-11-23');
+    const mango = roundTrip.readyLeads.find(lead => lead.brand === 'Mango & Co, "Fresh" Fruits');
+    const lotus = roundTrip.readyLeads.find(lead => lead.brand === 'Lotus Linen');
+
+    expect(roundTrip.ready).toBe(14);
+    expect(roundTrip.skipped).toBe(0);
+    expect(mango?.brand).toBe('Mango & Co, "Fresh" Fruits');
+    expect(lotus?.added).toBe('2026-11-05');
+    expect(lotus?.firstMsg).toBe('2026-11-20');
+  });
 });

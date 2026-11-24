@@ -22,6 +22,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('home');
   const [selectedLeadId, setSelectedLeadId] = React.useState<string | null>(null);
   const [leadSearch, setLeadSearch] = React.useState('');
+  const [importRequest, setImportRequest] = React.useState(0);
   const openLead = (id:string)=> setSelectedLeadId(id);
   const closeLead = ()=> setSelectedLeadId(null);
 
@@ -101,6 +102,10 @@ const App: React.FC = () => {
     setSelectedLeadId('');
     setActiveTab('leads');
   };
+  const handleImport = () => {
+    setActiveTab('leads');
+    setImportRequest(request => request + 1);
+  };
   const handleCloseLead = () => setSelectedLeadId(null);
 
   if (missingFirebaseConfig.length > 0) {
@@ -144,9 +149,9 @@ const App: React.FC = () => {
         <div className="app">
           <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
           <main className="main">
-          <Header onSignOut={handleSignOut} onSearch={handleSearch} onNewLead={handleNewLead} />
+          <Header onSignOut={handleSignOut} onSearch={handleSearch} onNewLead={handleNewLead} onImport={handleImport} />
           {activeTab === 'home' && <HomeDashboard />}
-          {activeTab === 'leads' && <Leads search={leadSearch} selectedLeadId={selectedLeadId} onCloseLead={handleCloseLead} />}
+          {activeTab === 'leads' && <Leads search={leadSearch} selectedLeadId={selectedLeadId} onCloseLead={handleCloseLead} importRequest={importRequest} />}
           {activeTab === 'pipe' && <PipelineBoard />}
           {activeTab === 'find' && <FindLeads />}
           {activeTab === 'num' && <Reports />}
