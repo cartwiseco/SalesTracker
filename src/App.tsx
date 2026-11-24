@@ -29,6 +29,15 @@ const App: React.FC = () => {
   const bypassAuth = import.meta.env.DEV && import.meta.env.VITE_BYPASS_AUTH === 'true';
 
   useEffect(() => {
+    const onNavigate = (event: Event) => {
+      const customEvent = event as CustomEvent<string>;
+      if (customEvent.detail) setActiveTab(customEvent.detail);
+    };
+    window.addEventListener('cartwise-go', onNavigate);
+    return () => window.removeEventListener('cartwise-go', onNavigate);
+  }, []);
+
+  useEffect(() => {
     if (missingFirebaseConfig.length > 0) return undefined;
     if (!auth) return undefined;
     if (bypassAuth) {

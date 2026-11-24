@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useLeads } from '../data/firestore';
-import { iso, today, gap, inr } from '../lib/dates';
+import { iso, today, gap, addDays, inr } from '../lib/dates';
 import { checks } from '../lib/checks';
-import { buildQueue, QueueItem } from '../lib/queue';
+import { buildQueue, QueueItem, startReviewList } from '../lib/queue';
+import { due, fuStatus, gapList } from '../lib/followUps';
+import { fillTemplate, DEFAULT_TEMPLATES } from '../lib/templates';
+import { planRows, nextAction } from '../lib/plan';
 
 // Stage colors (same as reference)
 const SC: Record<string, string> = {
@@ -29,8 +32,11 @@ function Gauge({percent}:{percent:number}){
 }
 
 const HomeDashboard: React.FC = () => {
-  const { leads, settings } = useLeads();
+  const { leads, settings, saveLead } = useLeads();
   const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [reviewIds, setReviewIds] = useState<string[]>([]);
+  const [reviewIndex, setReviewIndex] = useState(0);
+  const [draftText, setDraftText] = useState('');
 
   useEffect(()=>{
     setQueue(buildQueue(leads, settings));
@@ -48,14 +54,17 @@ const HomeDashboard: React.FC = () => {
   const pct = Math.min(100, monthRevenue/goal*100);
 
   // ----- Plan calculations -----
+  const todayString = today();
+  const plan = planRows(leads, settings, todayString);
+  const next = nextAction(leads, settings, todayString);
   const addedThisWeek = leadArray.filter(l=>{
     const added = l.added;
     if(!added) return false;
     const diff = gap(added, today());
     return diff<=6;
   }).length;
-  const firstMsgs = leadArray.filter(l=> l.stage!=='New Lead').length;
-  const followUpsDue = queue.filter(q=> q.key==='fu').length;
+  const firstMsgs = plan.counts.firstMessagesSent;
+  const followUpsDue = plan.stillDue;
   const planTargets = {
     followUps: settings?.perDay || 15, // using perDay as target for follow‑ups for demo
     find: settings?.perDay || 15,
@@ -64,12 +73,133 @@ const HomeDashboard: React.FC = () => {
 
   // Update document title with queue count
   useEffect(()=>{
-    const count = queue.length;
+    const count = queue.filter(item => item.key === 'fu').length;
     document.title = (count?`(${count}) `:'')+'Cart Wise Co: Lead Tracker';
   },[queue]);
 
   const readyForFirstMessage = leadArray.filter(l => l.stage === 'New Lead').slice(0, 50);
+
+  const openDraft = (leadId: string, ids?: string[]) => {
+    const list = ids || [leadId];
+    const index = list.indexOf(leadId);
+    setReviewIds(list);
+    setReviewIndex(Math.max(0, index));
+    const lead = leads[leadId];
+    if (!lead) return;
+    const templateIndex = lead.stage === 'New Lead'
+      ? 0
+      : gapList(settings).length === 0
+        ? 0
+        : Math.min(gapList(settings).length - 1, (lead.fu || 0) + 1);
+    const template = settings?.tpl?.[templateIndex] || DEFAULT_TEMPLATES[templateIndex];
+    setDraftText(fillTemplate(template, lead));
+  };
+
+  const openReview = () => {
+    const ids = startReviewList(leads, settings);
+    if (!ids.length) return;
+    openDraft(ids[0], ids);
+  };
+
+  const closeReview = () => {
+    setReviewIds([]);
+    setReviewIndex(0);
+    setDraftText('');
+  };
+
+  const sentLead = async (leadId: string) => {
+    const lead = leads[leadId];
+    if (!lead) return;
+    const firstMessage = lead.stage === 'New Lead';
+    const gaps = gapList(settings);
+    const nextFu = firstMessage ? 0 : Math.min(gaps.length, (lead.fu || 0) + 1);
+    const updated = {
+      ...lead,
+      stage: firstMessage ? 'Message Sent' : lead.stage,
+      firstMsg: firstMessage ? todayString : lead.firstMsg,
+      fu: nextFu,
+      lastContacted: todayString,
+      log: [...(lead.log || []), { t: todayString, x: firstMessage ? 'First message sent' : `Follow-up ${nextFu} sent` }],
+    };
+    await saveLead(updated);
+  };
+
+  const doneSend = async () => {
+    const leadId = reviewIds[reviewIndex];
+    if (!leadId) return;
+    await sentLead(leadId);
+    if (reviewIndex + 1 < reviewIds.length) {
+      const nextIndex = reviewIndex + 1;
+      setReviewIndex(nextIndex);
+      const lead = leads[reviewIds[nextIndex]];
+      if (lead) {
+        const gaps = gapList(settings);
+        const templateIndex = lead.stage === 'New Lead' ? 0 : Math.min(gaps.length - 1, (lead.fu || 0) + 1);
+        setDraftText(fillTemplate(settings?.tpl?.[templateIndex] || DEFAULT_TEMPLATES[templateIndex], lead));
+      }
+    } else {
+      closeReview();
+    }
+  };
+
+  const skipReview = () => {
+    if (reviewIndex + 1 < reviewIds.length) {
+      const nextIndex = reviewIndex + 1;
+      setReviewIndex(nextIndex);
+      const lead = leads[reviewIds[nextIndex]];
+      if (lead) {
+        const gaps = gapList(settings);
+        const templateIndex = lead.stage === 'New Lead' ? 0 : Math.min(gaps.length - 1, (lead.fu || 0) + 1);
+        setDraftText(fillTemplate(settings?.tpl?.[templateIndex] || DEFAULT_TEMPLATES[templateIndex], lead));
+      }
+    } else {
+      closeReview();
+    }
+  };
+
+  const reviewLead = reviewIds.length ? leads[reviewIds[reviewIndex]] : null;
   const needsFixing = leadArray.filter(l => checks(l).length).slice(0, 5);
+
+  const copyDraft = async () => {
+    try { await navigator.clipboard.writeText(draftText); } catch { /* fallback: leave text selected by the browser */ }
+  };
+
+  const openChannel = () => {
+    if (!reviewLead) return;
+    const handle = (reviewLead.handle || '').trim();
+    const digits = handle.replace(/\D/g, '');
+    if (reviewLead.route === 'WhatsApp') {
+      const phone = digits.length === 10 ? `91${digits}` : digits;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(draftText)}`, '_blank');
+    } else if (reviewLead.route === 'Email') {
+      const subject = `Quick idea for ${reviewLead.brand}`;
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(handle)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(draftText)}`, '_blank', 'noopener,noreferrer');
+    } else {
+      navigator.clipboard.writeText(draftText).catch(() => undefined);
+      const link = reviewLead.link || (handle ? `https://instagram.com/${handle.replace(/^@/, '')}` : '');
+      if (link) window.open(/^https?:/.test(link) ? link : `https://${link}`, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const reviewWhy = reviewLead
+    ? (() => {
+        if (reviewLead.stage === 'New Lead') return 'Ready for a first message';
+        const status = fuStatus(reviewLead, settings);
+        if (status === 'Overdue') {
+          const dueDate = due(reviewLead, settings);
+          return `Follow-up ${(reviewLead.fu || 0) + 1} of ${gapList(settings).length}, ${gap(dueDate, todayString)} days late`;
+        }
+        if (status === 'Due today') return `Follow-up ${(reviewLead.fu || 0) + 1} of ${gapList(settings).length}, due today`;
+        return status;
+      })()
+    : '';
+
+  const handleNext = () => {
+    if (next.action === 'review') openReview();
+    if (next.action === 'find') {
+      window.dispatchEvent(new CustomEvent('cartwise-go', { detail: 'find' }));
+    }
+  };
 
   return (
     <div id="view">
@@ -79,21 +209,21 @@ const HomeDashboard: React.FC = () => {
       <div className="card plan" style={{marginBottom:'16px'}}>
         <h2>Your plan for today</h2>
         <div style={{margin:'12px 0'}}>
-          <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}><b>1. Follow up</b><span>{followUpsDue} of {planTargets.followUps + followUpsDue}</span></div>
-          <div className="pt"><div className={`pf${followUpsDue >= planTargets.followUps ? ' done' : ''}`} style={{width:`${Math.min(100, planTargets.followUps + followUpsDue ? followUpsDue / (planTargets.followUps + followUpsDue) * 100 : 0)}%`}} /></div>
-          <div className="sub" style={{margin:'0'}}>{followUpsDue ? `${followUpsDue} still due. Do these first, they close the most deals.` : 'All follow-ups are done for today.'}</div>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}><b>1. Follow up</b><span>{plan.followUp.done} of {plan.followUp.total}</span></div>
+          <div className="pt"><div className={`pf${plan.followUp.doneStyle ? ' done' : ''}`} style={{width:`${plan.followUp.percent}%`}} /></div>
+          <div className="sub" style={{margin:'0'}}>{plan.stillDue > 0 ? `${plan.stillDue} still due. Do these first, they close the most deals.` : 'All follow-ups are done for today.'}</div>
         </div>
         <div style={{margin:'12px 0'}}>
-          <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}><b>2. Find new leads</b><span>{addedThisWeek} of {planTargets.find}</span></div>
-          <div className="pt"><div className={`pf${addedThisWeek >= planTargets.find ? ' done' : ''}`} style={{width:`${Math.min(100, planTargets.find ? addedThisWeek / planTargets.find * 100 : 0)}%`}} /></div>
-          <div className="sub" style={{margin:'0'}}>Use Find leads. Goal: {planTargets.find} well-checked leads (change it under Reports, Targets).</div>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}><b>2. Find new leads</b><span>{plan.find.done} of {plan.find.total}</span></div>
+          <div className="pt"><div className={`pf${plan.find.doneStyle ? ' done' : ''}`} style={{width:`${plan.find.percent}%`}} /></div>
+          <div className="sub" style={{margin:'0'}}>Use Find leads. Goal: {plan.find.total} well-checked leads (change it under Reports, Targets).</div>
         </div>
         <div style={{margin:'12px 0'}}>
-          <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}><b>3. Send first messages</b><span>{firstMsgs} of {planTargets.firstMsg}</span></div>
-          <div className="pt"><div className={`pf${firstMsgs >= planTargets.firstMsg ? ' done' : ''}`} style={{width:`${Math.min(100, planTargets.firstMsg ? firstMsgs / planTargets.firstMsg * 100 : 0)}%`}} /></div>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:'14px'}}><b>3. Send first messages</b><span>{plan.firstMessage.done} of {plan.firstMessage.total}</span></div>
+          <div className="pt"><div className={`pf${plan.firstMessage.doneStyle ? ' done' : ''}`} style={{width:`${plan.firstMessage.percent}%`}} /></div>
           <div className="sub" style={{margin:'0'}}>Start review sends new leads after your overdue follow-ups.</div>
         </div>
-        <button className="btn pri" onClick={()=>alert('Next step placeholder')}>Next</button>
+        {next.action ? <button className="btn pri" onClick={handleNext}>Next: {next.label}</button> : <b style={{color:'#7ce0a8'}}>{next.label}</b>}
       </div>
 
       <div className="g">
@@ -116,19 +246,46 @@ const HomeDashboard: React.FC = () => {
           <h2>Tasks for today ({queue.length})</h2>
           {queue.length === 0 ? <div className="empty">Nothing is due. Add leads or send first messages.</div> : queue.slice(0,50).map(q => {
             const l = q.lead;
-            const action = q.key==='fu' ? <><button className="btn sm">Draft</button><button className="btn sm pri">Sent</button></> : q.key==='close' ? <button className="btn sm">Close lead</button> : <><button className="btn sm">Push 2 days</button><button className="btn sm pri">Open</button></>;
+            const action = q.key==='fu' ? <><button className="btn sm" onClick={()=>openDraft(l.id,[l.id])}>Draft</button><button className="btn sm pri" onClick={()=>sentLead(l.id)}>Sent</button></> : q.key==='close' ? <button className="btn sm">Close lead</button> : <><button className="btn sm" onClick={()=>void saveLead({...l,nextAction:addDays(todayString,2)})}>Push 2 days</button><button className="btn sm pri" onClick={()=>openDraft(l.id,[l.id])}>Open</button></>;
             return <div className="t" style={{'--c':SC[l.stage]} as React.CSSProperties} key={l.id}><div className="ic">{(l.brand||'?').charAt(0).toUpperCase()}</div><div className="x"><b>{l.brand}</b>{q.tag && <span className={`tag ${q.tag==='Overdue'||q.tag==='Set date'?'bad':q.tag==='Due today'?'warn':'ok'}`}> {q.tag}</span>}<span /></div><div className="a">{action}</div></div>;
           })}
         </div>
         <div className="card t-green">
           <h2>Ready for a first message ({readyForFirstMessage.length})</h2>
           {readyForFirstMessage.length === 0 ? <div className="empty">No new leads waiting.</div> : readyForFirstMessage.map(l => (
-            <div className="t" style={{'--c':SC[l.stage]} as React.CSSProperties} key={l.id}><div className="ic">{(l.brand||'?').charAt(0).toUpperCase()}</div><div className="x"><b>{l.brand}</b><span>{l.observation || 'No observation yet'}</span></div><div className="a"><button className="btn sm">Draft</button><button className="btn sm pri">Sent</button></div></div>
+            <div className="t" style={{'--c':SC[l.stage]} as React.CSSProperties} key={l.id}><div className="ic">{(l.brand||'?').charAt(0).toUpperCase()}</div><div className="x"><b>{l.brand}</b><span>{l.observation || 'No observation yet'}</span></div><div className="a"><button className="btn sm" onClick={()=>openDraft(l.id,[l.id])}>Draft</button><button className="btn sm pri" onClick={()=>sentLead(l.id)}>Sent</button></div></div>
           ))}
         </div>
       </div>
 
       {needsFixing.length > 0 && <div className="card t-red"><h2>Needs fixing ({needsFixing.length})</h2>{needsFixing.map(l => <div className="t" key={l.id}><div className="x"><b>{l.brand}</b><span>{checks(l).join(', ')}</span></div><button className="btn sm">Fix</button></div>)}</div>}
+
+      {reviewLead && (
+        <div id="modal" style={{display:'block'}}>
+          <div className="rec">
+            <div className="rh">
+              <div>
+                <small>Item {reviewIndex + 1} of {reviewIds.length}</small>
+                <h1>{reviewLead.brand}</h1>
+              </div>
+              <span className="sp" />
+              <button className="btn" onClick={closeReview} aria-label="Close draft">×</button>
+            </div>
+            <div className="rb">
+              <p className="sub">{reviewWhy}</p>
+              <textarea className="draft" rows={7} value={draftText} onChange={event => setDraftText(event.target.value)} />
+              <div style={{display:'flex',gap:'8px',marginTop:'12px',flexWrap:'wrap'}}>
+                <button className="btn" onClick={copyDraft}>Copy</button>
+                <button className="btn pri" onClick={openChannel}>{reviewLead.route === 'WhatsApp' ? 'Open WhatsApp' : reviewLead.route === 'Email' ? 'Open email' : 'Copy and open profile'}</button>
+              </div>
+            </div>
+            <div className="rf">
+              <button className="btn" onClick={skipReview}>Skip</button>
+              <button className="btn pri" onClick={doneSend}>{reviewIndex + 1 === reviewIds.length ? 'I sent it' : 'I sent it, next'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -13,12 +13,13 @@ export type QueueItem = {
 export const buildQueue = (
   leads: Record<string, Lead>,
   settings: Settings | null,
+  fixedToday?: string,
 ): QueueItem[] => {
   const items: QueueItem[] = [];
-  const todayString = today();
+  const todayString = fixedToday || today();
 
   Object.values(leads).forEach((lead) => {
-    const followUpStatus = fuStatus(lead, settings);
+    const followUpStatus = fuStatus(lead, settings, fixedToday);
     if (followUpStatus === 'Overdue' || followUpStatus === 'Due today') {
       const dueDate = due(lead, settings);
       items.push({
@@ -31,7 +32,7 @@ export const buildQueue = (
       items.push({ lead, key: 'close', score: 50 });
     }
 
-    const nextActionStatus = naStatus(lead);
+    const nextActionStatus = naStatus(lead, fixedToday);
     if (nextActionStatus === 'Overdue' || nextActionStatus === 'Due today' || nextActionStatus === 'Set date') {
       const valueThousands = (lead.value || 0) / 1000;
       const score = nextActionStatus === 'Overdue'
@@ -49,8 +50,9 @@ export const buildQueue = (
 export const startReviewList = (
   leads: Record<string, Lead>,
   settings: Settings | null,
+  fixedToday?: string,
 ): string[] => {
-  const followUpIds = buildQueue(leads, settings)
+  const followUpIds = buildQueue(leads, settings, fixedToday)
     .filter(item => item.key === 'fu')
     .map(item => item.lead.id);
   const newLeadIds = Object.values(leads)

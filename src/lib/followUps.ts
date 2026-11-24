@@ -16,20 +16,20 @@ export const due = (lead: Lead, settings: Settings | null): string => {
   return followUpNumber >= gaps.length ? 'done' : addDays(lead.firstMsg, gaps[followUpNumber]);
 };
 
-export const fuStatus = (lead: Lead, settings: Settings | null): string => {
+export const fuStatus = (lead: Lead, settings: Settings | null, fixedToday?: string): string => {
   const dueDate = due(lead, settings);
   if (!dueDate) return '';
   if (dueDate === 'done') return 'Close or Lost';
-  const todayDate = today();
+  const todayDate = fixedToday || today();
   if (dueDate < todayDate) return 'Overdue';
   if (dueDate === todayDate) return 'Due today';
   return 'Upcoming';
 };
 
-export const naStatus = (lead: Lead): string => {
+export const naStatus = (lead: Lead, fixedToday?: string): string => {
   if (!['Replied', 'Call Booked', 'Quote Sent'].includes(lead.stage)) return '';
   if (lead.nextAction) {
-    const todayDate = today();
+    const todayDate = fixedToday || today();
     if (lead.nextAction < todayDate) return 'Overdue';
     if (lead.nextAction === todayDate) return 'Due today';
     return 'Upcoming';
