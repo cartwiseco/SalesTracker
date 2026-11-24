@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 interface HeaderProps {
   onSignOut: () => void;
   onSearch: (query: string) => void;
+  onNewLead: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSignOut, onSearch }) => {
+const Header: React.FC<HeaderProps> = ({ onSignOut, onSearch, onNewLead }) => {
   const [search, setSearch] = useState('');
 
   return (
@@ -20,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ onSignOut, onSearch }) => {
         }}
       />
       <span className="sp" />
-      <button className="btn">New lead</button>
+      <button className="btn" onClick={onNewLead}>New lead</button>
       <button className="btn" onClick={onSignOut}>Sign out</button>
     </div>
   );

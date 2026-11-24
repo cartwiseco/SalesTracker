@@ -97,6 +97,11 @@ const App: React.FC = () => {
     setLeadSearch(query);
     setActiveTab('leads');
   };
+  const handleNewLead = () => {
+    setSelectedLeadId('');
+    setActiveTab('leads');
+  };
+  const handleCloseLead = () => setSelectedLeadId(null);
 
   if (missingFirebaseConfig.length > 0) {
     return (
@@ -139,9 +144,9 @@ const App: React.FC = () => {
         <div className="app">
           <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
           <main className="main">
-          <Header onSignOut={handleSignOut} onSearch={handleSearch} />
+          <Header onSignOut={handleSignOut} onSearch={handleSearch} onNewLead={handleNewLead} />
           {activeTab === 'home' && <HomeDashboard />}
-          {activeTab === 'leads' && <Leads search={leadSearch} />}
+          {activeTab === 'leads' && <Leads search={leadSearch} selectedLeadId={selectedLeadId} onCloseLead={handleCloseLead} />}
           {activeTab === 'pipe' && <PipelineBoard />}
           {activeTab === 'find' && <FindLeads />}
           {activeTab === 'num' && <Reports />}

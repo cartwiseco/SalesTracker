@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLeads } from '../data/firestore';
 import { Lead } from '../models/Lead';
 import { OPT } from './FindLeads';
@@ -6,6 +6,7 @@ import { STAGES } from '../lib/csv';
 import { applySavedView, filterLeads, LeadListState, sortLeads } from '../lib/leadsList';
 import { fmt, inr, today } from '../lib/dates';
 import { fuStatus, naStatus } from '../lib/followUps';
+import LeadRecordModal, { EMPTY_LEAD } from '../components/LeadRecordModal';
 
 const STAGE_COLORS: Record<string, string> = {
   'New Lead':'#6b7a90', 'Message Sent':'#0176d3', Replied:'#06a59a',
@@ -17,11 +18,22 @@ const FILTERS = [
 ] as const;
 const emptyState = (): LeadListState => ({ stage:'', filters:{}, sort:'n', direction:1 });
 
-const Leads: React.FC<{ search?: string }> = ({ search = '' }) => {
-  const { leads, settings, saveSettings } = useLeads();
+const Leads: React.FC<{ search?: string; selectedLeadId?: string | null; onCloseLead?: () => void }> = ({ search = '', selectedLeadId = null, onCloseLead }) => {
+  const { leads, settings, saveSettings, saveLead, deleteLead } = useLeads();
   const [listState, setListState] = useState<LeadListState>(emptyState);
   const [viewName, setViewName] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const [record, setRecord] = useState<Lead | null>(null);
+
+  useEffect(() => {
+    if (selectedLeadId === null) {
+      setRecord(null);
+    } else if (selectedLeadId === '') {
+      setRecord(EMPTY_LEAD(Math.max(0, ...Object.values(leads).map(lead => lead.n || 0)) + 1));
+    } else {
+      setRecord(leads[selectedLeadId] || null);
+    }
+  }, [selectedLeadId, leads]);
 
   const allLeads = Object.values(leads);
   const filtered = filterLeads(leads, search, listState);
@@ -128,6 +140,16 @@ const Leads: React.FC<{ search?: string }> = ({ search = '' }) => {
         </div>
       )}
       {ordered.length > 100 && !showAll && <p><button className="btn" onClick={() => setShowAll(true)}>Show all {ordered.length}</button></p>}
+      {record && selectedLeadId !== null && <LeadRecordModal
+        key={record.id}
+        lead={record}
+        isNew={selectedLeadId === ''}
+        allLeads={leads}
+        settings={settings}
+        onSave={saveLead}
+        onDelete={deleteLead}
+        onClose={() => onCloseLead?.()}
+      />}
     </div>
   );
 };
