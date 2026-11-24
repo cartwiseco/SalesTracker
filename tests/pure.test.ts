@@ -233,6 +233,17 @@ describe('needs fixing', () => {
   it('rejects duplicate and empty brand data only in import logic', () => {
     expect(makeLead({ brand:'  alpha looms ' }).brand?.trim().toLowerCase()).toBe('alpha looms');
   });
+
+  it('flags the fixture Mira Mats record for all three required warnings', () => {
+    vi.setSystemTime(new Date(2026, 10, 23, 12));
+    const csv = readFileSync(resolve(process.cwd(), 'docs/test-leads.csv'), 'utf8');
+    const imported = previewImport(csv, [], '2026-11-23').readyLeads;
+    const mira = imported.find(lead => lead.brand === 'Mira Mats');
+    expect(mira).toBeDefined();
+    expect(checks(mira!, imported)).toEqual(expect.arrayContaining([
+      'Add first message date', 'Add reply date', 'Add deal value',
+    ]));
+  });
 });
 
 describe('Leads list helpers', () => {
