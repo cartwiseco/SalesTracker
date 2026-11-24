@@ -10,6 +10,7 @@ import { previewImport } from '../src/lib/csv';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { foundLeadActivity, gmailComposeUrl, instagramUrl, sentLeadUpdate, whatsappUrl } from '../src/lib/outreach';
+import { applySavedView, filterLeads, sortLeads } from '../src/lib/leadsList';
 
 const makeLead = (overrides: Partial<Lead>): Lead => ({
   id: 'test', n: 1, stage: 'New Lead', added: '2026-11-23', fu: 0,
@@ -231,5 +232,34 @@ describe('needs fixing', () => {
 
   it('rejects duplicate and empty brand data only in import logic', () => {
     expect(makeLead({ brand:'  alpha looms ' }).brand?.trim().toLowerCase()).toBe('alpha looms');
+  });
+});
+
+describe('Leads list helpers', () => {
+  it('searches and filters the fixture and sorts by lead number', () => {
+    vi.setSystemTime(new Date(2026, 10, 23, 12));
+    const csv = readFileSync(resolve(process.cwd(), 'docs/test-leads.csv'), 'utf8');
+    const imported = previewImport(csv, [], '2026-11-23').readyLeads;
+    const leads = Object.fromEntries(imported.map((lead) => [lead.id, lead])) as Record<string, Lead>;
+    const base = { stage:'', filters:{}, sort:'n', direction:1 };
+
+    expect(filterLeads(leads, 'esha', base).map(lead => lead.brand)).toEqual(['Echo Beauty']);
+    const messageFilter = {
+      stage:'Message Sent',
+      filters:{ source:'Google', platform:'WooCommerce' },
+      sort:'n', direction:1,
+    };
+    expect(filterLeads(leads, '', messageFilter).map(lead => lead.brand)).toEqual(['Beta Kids']);
+    expect(sortLeads(imported, 'n', 1, null, '2026-11-23')[0].brand).toBe('Alpha Looms');
+    expect(sortLeads(imported, 'n', -1, null, '2026-11-23')[0].brand).toBe('Mira Mats');
+  });
+
+  it('applies saved stage, filter, sort, and direction', () => {
+    const state = applySavedView({
+      n:'Google stores', sf:'Message Sent', f:{source:'Google', platform:'WooCommerce'}, sort:'brand', dir:-1,
+    });
+    expect(state).toEqual({
+      stage:'Message Sent', filters:{source:'Google', platform:'WooCommerce'}, sort:'brand', direction:-1,
+    });
   });
 });

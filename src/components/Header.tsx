@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 
 interface HeaderProps {
   onSignOut: () => void;
+  onSearch: (query: string) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSignOut }) => {
+const Header: React.FC<HeaderProps> = ({ onSignOut, onSearch }) => {
   const [search, setSearch] = useState('');
 
   return (
@@ -13,7 +14,10 @@ const Header: React.FC<HeaderProps> = ({ onSignOut }) => {
         id="gs"
         placeholder="Search leads by brand, contact, handle or link"
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          onSearch(e.target.value);
+        }}
       />
       <span className="sp" />
       <button className="btn">New lead</button>

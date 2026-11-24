@@ -21,6 +21,7 @@ export const UserContext = createContext<null | { uid: string; email: string }>(
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = React.useState('home');
   const [selectedLeadId, setSelectedLeadId] = React.useState<string | null>(null);
+  const [leadSearch, setLeadSearch] = React.useState('');
   const openLead = (id:string)=> setSelectedLeadId(id);
   const closeLead = ()=> setSelectedLeadId(null);
 
@@ -92,6 +93,10 @@ const App: React.FC = () => {
     if (!auth) return;
     await signOut(auth);
   };
+  const handleSearch = (query: string) => {
+    setLeadSearch(query);
+    setActiveTab('leads');
+  };
 
   if (missingFirebaseConfig.length > 0) {
     return (
@@ -134,9 +139,9 @@ const App: React.FC = () => {
         <div className="app">
           <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
           <main className="main">
-          <Header onSignOut={handleSignOut} />
+          <Header onSignOut={handleSignOut} onSearch={handleSearch} />
           {activeTab === 'home' && <HomeDashboard />}
-          {activeTab === 'leads' && <Leads />}
+          {activeTab === 'leads' && <Leads search={leadSearch} />}
           {activeTab === 'pipe' && <PipelineBoard />}
           {activeTab === 'find' && <FindLeads />}
           {activeTab === 'num' && <Reports />}
