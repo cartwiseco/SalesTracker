@@ -124,24 +124,26 @@ Reference function names are given so the agent can read the exact code.
 
 ## 8. Current status (24 Nov 2026)
 
+## 8. Current status (24 Nov 2026)
+
 **Verified and implemented:**
-- Firebase Google sign-in and allowed-email UI check are present. Firestore rules restrict access by uid and configured email placeholder; replace `YOUR_EMAIL@gmail.com` and deploy rules before production use.
-- Development-only `VITE_BYPASS_AUTH=true` activates a visible TEST MODE banner, loads `docs/test-leads.csv` into an in-memory provider, fixes the clock to 2026-11-23, and opens no Firestore listeners or writes.
-- `LeadsProvider` owns the shared Firestore listeners and exposes cached leads/settings through `useLeads()`.
-- Shared local-date clock, follow-up, queue, plan-row, send transition, channel URL, CSV, template, and data-check helpers are under `src/lib`.
-- Home plan counts use dated activity entries. Follow-ups sent today leave that day's due queue; the title count includes the full queue (follow-ups, close tasks, and next actions).
-- Home Next actions, Start Review ordering, draft editing/copy/channel links, and send logging are implemented. Find Leads logs `Found via lead finder` using the shared clock.
-- `npx tsc --noEmit` passes; `npm test` passes with 25 tests; `npm run build` passes.
-- The exact reference files are in `reference/`; the handover document and fixture are in `docs/`.
+- Firebase Google sign-in and allowed-email UI check are present. Firestore rules restrict access by uid and the email placeholder; replace `YOUR_EMAIL@gmail.com` and deploy the rules before production use.
+- Development-only `VITE_BYPASS_AUTH=true` shows a TEST MODE banner, fixes the clock to 2026-11-23, and uses an in-memory provider without Firestore reads or writes. Set `VITE_TEST_EMPTY_STORE=true` to start with no fixture records; otherwise the store loads `docs/test-leads.csv`.
+- One `LeadsProvider` owns shared realtime Firestore listeners and exposes cached leads/settings.
+- Home plan counts, Next action, Start Review, draft window, send logging, channel URL builders, and same-day follow-up queue suppression are implemented.
+- Find Leads writes `Found via lead finder` using the shared clock.
+- Leads list supports search, stage chips, sorting, five filters, saved views, first-100/show-all, and responsive column hiding. Header search switches to Leads.
+- Lead record window supports all five field groups, stage path/logging, activity entries, duplicate/required warnings, Save/Cancel/Delete confirmation, and shared `openLead(id)` routing.
+- CSV import previews, skips missing/duplicate brands, preserves quoted fields and converts dates. Firestore writes use atomic batches of up to 500; a failed batch shows its number, confirmed batch failure, and count from earlier committed batches. CSV export downloads `cart-wise-leads.csv`.
+- Browser audit with the fixture verified 14 records, search, filters, saved views, record actions, import preview, export Blob contents, and zero horizontal overflow at requested widths 1280, 900, 600, and 400. The integrated browser's actual CSS viewport was narrower than requested; observed `innerWidth` values were recorded in the handoff.
+- Latest validation: `npx tsc --noEmit` passes, `npm test` passes (30 tests), and `npm run build` passes.
 
 **Still missing or incomplete:**
-- Leads page and Pipeline board are placeholders; the shared open-lead event has no completed lead modal to receive it.
-- Leads search, sorting, filters, saved views, activity editing, and CSV import/export UI are incomplete.
-- Close lead only opens the lead; no completed modal exists yet to choose a lost reason and save the stage.
-- Backup and Restore are not implemented.
-- Reports need further parity/accuracy review; template writes still need debounce/blur behavior.
-- Vercel project variables and Firebase authorized domains/rules must be configured for deployment.
-- `docs/PROMPTS.md` is not present. Skip code splitting and drag-and-drop libraries; native HTML5 is intended for Pipeline.
+- Pipeline page/native drag and drop.
+- Backup and Restore.
+- Reports need further reference-parity review; Templates writes still need debounce/blur behavior.
+- Vercel environment variables, Firebase authorized domains, and deployed owner-email Firestore rules must be verified for production.
+- `docs/PROMPTS.md` is not present. Skip code splitting and drag-and-drop libraries; use native HTML5 for Pipeline.
 
 ## 9. How to work with the owner
 

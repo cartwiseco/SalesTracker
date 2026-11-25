@@ -20,7 +20,7 @@ const FILTERS = [
 const emptyState = (): LeadListState => ({ stage:'', filters:{}, sort:'n', direction:1 });
 
 const Leads: React.FC<{ search?: string; selectedLeadId?: string | null; onCloseLead?: () => void; importRequest?: number }> = ({ search = '', selectedLeadId = null, onCloseLead, importRequest = 0 }) => {
-  const { leads, settings, saveSettings, saveLead, deleteLead } = useLeads();
+  const { leads, settings, saveSettings, saveLead, saveLeadsBatch, deleteLead } = useLeads();
   const [listState, setListState] = useState<LeadListState>(emptyState);
   const [viewName, setViewName] = useState('');
   const [showAll, setShowAll] = useState(false);
@@ -65,7 +65,7 @@ const Leads: React.FC<{ search?: string; selectedLeadId?: string | null; onClose
 
   const importReadyLeads = async () => {
     try {
-      await Promise.all(importPreview.readyLeads.map(saveLead));
+      await saveLeadsBatch(importPreview.readyLeads);
       setImportOpen(false);
       setListState(current => ({ ...current, stage:'', filters:{} }));
       setShowAll(true);

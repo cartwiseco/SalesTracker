@@ -11,6 +11,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { foundLeadActivity, gmailComposeUrl, instagramUrl, sentLeadUpdate, whatsappUrl } from '../src/lib/outreach';
 import { applySavedView, filterLeads, sortLeads } from '../src/lib/leadsList';
+import { FIRESTORE_BATCH_LIMIT, splitIntoBatches } from '../src/lib/batches';
 
 const makeLead = (overrides: Partial<Lead>): Lead => ({
   id: 'test', n: 1, stage: 'New Lead', added: '2026-11-23', fu: 0,
@@ -272,5 +273,14 @@ describe('Leads list helpers', () => {
     expect(state).toEqual({
       stage:'Message Sent', filters:{source:'Google', platform:'WooCommerce'}, sort:'brand', direction:-1,
     });
+  });
+});
+
+describe('Firestore import batches', () => {
+  it('splits imports at no more than 500 writes per atomic batch', () => {
+    const batches = splitIntoBatches(Array.from({ length:1001 }, (_, index) => index));
+    expect(FIRESTORE_BATCH_LIMIT).toBe(500);
+    expect(batches.map(batch => batch.length)).toEqual([500, 500, 1]);
+    expect(batches.every(batch => batch.length <= 500)).toBe(true);
   });
 });
